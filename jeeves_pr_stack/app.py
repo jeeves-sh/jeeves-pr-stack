@@ -42,6 +42,7 @@ def print_stack():
     table = Table(
         'PR',
         'Status',
+        title='Stack',
     )
 
     table.add_row(
