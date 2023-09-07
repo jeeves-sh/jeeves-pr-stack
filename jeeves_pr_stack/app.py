@@ -55,8 +55,9 @@ def _print_stack(stack: list[PullRequest]):
         box=None,
     )
 
-    for pr in stack:
+    for index, pr in enumerate(stack):
         is_current = '➤' if pr.is_current else ''
+        is_top_pr = (index == 0)
 
         heading = Text()
         heading.append(
@@ -75,6 +76,13 @@ def _print_stack(stack: list[PullRequest]):
             f'{pr.base_branch}\n',
             style=Style(color='magenta'),
         )
+
+        if is_top_pr:
+            heading.append('Top PR', style=Style(
+                bold=True,
+                reverse=True,
+            ))
+            heading.append(' Start merging the stack from here.\n')
 
         table.add_row(
             is_current,
