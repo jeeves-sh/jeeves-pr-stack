@@ -13,6 +13,9 @@ jeeves-shell = {extras = ["all"], version = "^2.2.0"}
 [tool.poetry.group.dev.dependencies]
 jeeves-yeti-pyproject = "^0.2.20"
 
+[tool.poetry.plugins.jeeves]
+stack = "jeeves_pr_stack:app"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
