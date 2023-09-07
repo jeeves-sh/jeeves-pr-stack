@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import TypedDict
 
 
@@ -23,3 +24,11 @@ class PullRequestStatus(TypedDict):
 
     createdBy: list[CreatedBy]
     currentBranch: CurrentBranch
+
+
+@dataclass
+class PullRequest:
+    branch: str
+    title: str
+    url: str
+    is_current: bool

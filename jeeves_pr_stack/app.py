@@ -1,15 +1,10 @@
-import json
-import os
-
-import rich
 from rich.console import Console
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from sh import gh
 from typer import Typer
 
-from jeeves_pr_stack.models import PullRequestStatus
+from jeeves_pr_stack import github
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -21,25 +16,7 @@ app = Typer(
 @app.callback()
 def print_stack():
     """Print current PR stack."""
-    fields = [
-        'baseRefName',
-        'headRefName',
-        'id',
-        'isDraft',
-        'mergeable',
-        'title',
-        'url',
-    ]
-    response: PullRequestStatus = json.loads(
-        gh.pr.status(
-            json=','.join(fields),
-            _env={
-                **os.environ,
-                'NO_COLOR': '1',
-            },
-        ),
-    )
-    # rich.print(response)
+    stack = github.retrieve_stack()
 
     table = Table(
         '',
@@ -48,14 +25,13 @@ def print_stack():
         title='Stack',
     )
 
-    current_pr_id = response['currentBranch']['id']
-    for pr in reversed(response['createdBy']):
-        is_current = '➤' if pr['id'] == current_pr_id else ''
+    for pr in stack:
+        is_current = '➤' if pr.is_current else ''
         table.add_row(
             is_current,
             Text(
-                pr['title'],
-                style=Style(link=pr['url']),
+                pr.title,
+                style=Style(link=pr.url),
             ),
         )
 
