@@ -115,3 +115,29 @@ def print_current_stack():
         style=Style(color='white', bold=True),
     )
     console.print('Use [code]gh pr create[/code] to create one.')
+
+
+@app.command()
+def rebase():
+    """Rebase current stack."""
+    raise NotImplementedError()
+
+
+@app.command()
+def merge():
+    """Merge current stack, starting from the top."""
+    raise NotImplementedError()
+
+
+@app.command()
+def comment():
+    """
+    Add or update a comment with a navigation table to each PR in current stack.
+    """
+    raise NotImplementedError()
+
+
+@app.command()
+def fork():
+    """Fork from current branch, adding another item to the stack."""
+    raise NotImplementedError()
