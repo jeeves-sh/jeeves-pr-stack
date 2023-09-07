@@ -60,7 +60,7 @@ def construct_stack_for_branch(   # noqa: WPS210
         for source, destination, _reverse   # noqa: WPS361
         in edge_dfs(graph, source=branch, orientation='reverse')
     ]
-    predecessors = list(edge_dfs(graph, source=branch))
+    predecessors = list(reversed(list(edge_dfs(graph, source=branch))))
     edges = predecessors + successors
 
     return [
