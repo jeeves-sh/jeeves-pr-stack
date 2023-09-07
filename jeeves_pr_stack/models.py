@@ -12,6 +12,7 @@ class CurrentBranch(TypedDict):
 
 
 class CreatedBy(TypedDict):
+    number: int
     baseRefName: str
     headRefName: str
     title: str
@@ -28,6 +29,7 @@ class PullRequestStatus(TypedDict):
 
 @dataclass
 class PullRequest:
+    number: int
     branch: str
     base_branch: str
     title: str

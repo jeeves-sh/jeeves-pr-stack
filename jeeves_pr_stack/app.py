@@ -19,7 +19,8 @@ def print_stack():
     stack = github.retrieve_stack()
 
     table = Table(
-        '',
+        'Current',
+        'Number',
         'PR',
         'Status',
         show_header=False,
@@ -51,7 +52,13 @@ def print_stack():
 
         table.add_row(
             is_current,
+            f'#{pr.number}',
             heading,
         )
 
-    Console().print(table)
+    console = Console()
+
+    console.print(table)
+    console.print(
+        'Use [code]gh pr checkout <number>[/code] to navigate the stack.\n',
+    )

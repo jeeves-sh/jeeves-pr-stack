@@ -8,6 +8,7 @@ from sh import gh
 def retrieve_stack() -> list[PullRequest]:
     """Retrieve the current PR stack."""
     fields = [
+        'number',
         'baseRefName',
         'headRefName',
         'id',
@@ -34,6 +35,7 @@ def retrieve_stack() -> list[PullRequest]:
             base_branch=pr['baseRefName'],
             url=pr['url'],
             is_current=pr['id'] == current_pr_id,
+            number=pr['number'],
         )
         for pr in reversed(response['createdBy'])
     ]
