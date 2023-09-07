@@ -52,7 +52,7 @@ def print_stack():
 
         table.add_row(
             is_current,
-            f'#{pr.number}',
+            str(pr.number),
             heading,
         )
 
@@ -60,5 +60,5 @@ def print_stack():
 
     console.print(table)
     console.print(
-        'Use [code]gh pr checkout <number>[/code] to navigate the stack.\n',
+        'Use [code]gh pr checkout <number>[/code] to switch to another PR.\n',
     )
