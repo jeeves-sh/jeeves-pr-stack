@@ -1,11 +1,14 @@
+import funcy
 from rich.console import Console, RenderableType
 from rich.style import Style
+from rich.prompt import Prompt
 from rich.table import Table
 from rich.text import Text
-from typer import Typer
+from typer import Typer, Context
+from sh import git, ErrorReturnCode
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.models import ChecksStatus, PullRequest
+from jeeves_pr_stack.models import ChecksStatus, PullRequest, State
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -101,9 +104,15 @@ def _print_stack(stack: list[PullRequest]):
 
 
 @app.callback()
-def print_current_stack():
+def print_current_stack(context: Context):
     """Print current PR stack."""
-    stack = github.retrieve_stack()
+    current_branch = github.retrieve_current_branch()
+    stack = github.retrieve_stack(current_branch=current_branch)
+
+    context.obj = State(
+        current_branch=current_branch,
+        stack=stack,
+    )
 
     if stack:
         _print_stack(stack)
@@ -138,6 +147,32 @@ def comment():
 
 
 @app.command()
-def fork():
+def fork(context: Context):
     """Fork from current branch, adding another item to the stack."""
-    raise NotImplementedError()
+    console = Console()
+
+    state: State = context.obj
+    last_pull_request = funcy.last(state.stack)
+    if not last_pull_request.is_current:
+        console.print(
+            'Stack must be linear, so forking a PR in the middle of it is not '
+            'a good idea.\n',
+            style=Style(color='red'),
+        )
+        console.print('Please navigate to the last PR in the stack first:\n')
+        console.print(
+            f'  [code]gh pr checkout {last_pull_request.number}[/code]\n',
+        )
+        return
+
+    console.print('Current branch:\n')
+    console.print(f'  [code]{state.current_branch}[/code]\n')
+
+    branch = Prompt.ask('New branch name (will be created if missing)')
+
+    try:
+        git.switch(branch)
+    except ErrorReturnCode as err:
+        if 'invalid reference' in err.stderr.encode():
+            console.print('Branch unknown, creating one.')
+            git.switch('-c', branch)

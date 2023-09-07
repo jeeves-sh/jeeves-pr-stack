@@ -61,3 +61,11 @@ class PullRequest:
     is_draft: bool
     reviewers: list[str]
     checks_status: ChecksStatus
+
+
+@dataclass
+class State:
+    """Application state."""
+
+    current_branch: str
+    stack: list[PullRequest]
