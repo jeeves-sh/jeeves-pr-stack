@@ -2,7 +2,11 @@ from typer import Typer
 from sh import gh
 
 
-app = Typer(help='Manage stacks of GitHub PRs.')
+app = Typer(
+    help='Manage stacks of GitHub PRs.',
+    name='stack',
+    invoke_without_command=True,
+)
 
 
 @app.callback()
@@ -11,4 +15,5 @@ def print_stack():
         'baseRefName', 'headRefName', 'id', 'isDraft', 'mergeable', 'title',
         'url',
     ]
-    gh.pr.status(json=','.join(fields))
+    response = gh.pr.status(json=','.join(fields))
+    print(response)
