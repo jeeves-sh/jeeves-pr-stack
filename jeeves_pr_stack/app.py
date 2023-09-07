@@ -1,5 +1,12 @@
+import json
+import os
+
 from typer import Typer
 from sh import gh
+from rich.table import Table
+from rich.text import Text
+from rich.style import Style
+from rich.console import Console
 
 
 app = Typer(
@@ -15,5 +22,26 @@ def print_stack():
         'baseRefName', 'headRefName', 'id', 'isDraft', 'mergeable', 'title',
         'url',
     ]
-    response = gh.pr.status(json=','.join(fields))
-    print(response)
+    response = json.loads(
+        gh.pr.status(
+            json=','.join(fields),
+            _env={
+                **os.environ,
+                'NO_COLOR': '1',
+            }
+        ),
+    )
+
+    table = Table(
+        'PR',
+        'Status',
+    )
+
+    table.add_row(
+        Text(
+            response['currentBranch']['title'],
+            style=Style(link=response['currentBranch']['url']),
+        ),
+    )
+
+    Console().print(table)
