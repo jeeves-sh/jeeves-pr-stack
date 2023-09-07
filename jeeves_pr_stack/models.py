@@ -39,6 +39,8 @@ class PullRequestStatus(TypedDict):
 
 
 class ChecksStatus(Enum):
+    """Status of PR checks."""
+
     SUCCESS = auto()
     FAILURE = auto()
     RUNNING = auto()
@@ -46,6 +48,8 @@ class ChecksStatus(Enum):
 
 @dataclass
 class PullRequest:
+    """Describe a GitHub PR."""
+
     number: int
     branch: str
     base_branch: str

@@ -27,7 +27,7 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
         raw_status_values.remove('FAILURE')
     except KeyError:
         # No failures detected, we are fine
-        pass
+        pass   # noqa: WPS420
     else:
         return ChecksStatus.FAILURE
 
@@ -37,7 +37,7 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
     return ChecksStatus.SUCCESS
 
 
-def construct_stack_for_branch(
+def construct_stack_for_branch(   # noqa: WPS210
     branch: str,
     pull_requests: list[PullRequest],
 ) -> list[PullRequest]:
@@ -57,7 +57,7 @@ def construct_stack_for_branch(
 
     successors = [
         (source, destination)
-        for source, destination, _reverse
+        for source, destination, _reverse   # noqa: WPS361
         in edge_dfs(graph, source=branch, orientation='reverse')
     ]
     predecessors = list(edge_dfs(graph, source=branch))
