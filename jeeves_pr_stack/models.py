@@ -1,30 +1,47 @@
 from dataclasses import dataclass
+from enum import Enum, auto
 from typing import TypedDict
 
 
-class CurrentBranch(TypedDict):
-    """Section of gh CLI output."""
+class RawReviewRequest(TypedDict):
+    """User that was asked to review a PR."""
 
-    title: str
-    url: str
-    baseRefName: str
-    id: str
+    login: str
 
 
-class CreatedBy(TypedDict):
+class RawStatusCheck(TypedDict):
+    """PR Status Check."""
+
+    conclusion: str
+
+
+class RawPullRequest(TypedDict):
+    """Description of a PR from GitHub CLI."""
+
     number: int
     baseRefName: str
     headRefName: str
     title: str
     url: str
     id: str
+    isDraft: bool
+    mergeable: str
+    reviewDecision: str
+    reviewRequests: list[RawReviewRequest]
+    statusCheckRollup: list[RawStatusCheck]
 
 
 class PullRequestStatus(TypedDict):
     """Raw output from gh CLI."""
 
-    createdBy: list[CreatedBy]
-    currentBranch: CurrentBranch
+    createdBy: list[RawPullRequest]
+    currentBranch: RawPullRequest
+
+
+class ChecksStatus(Enum):
+    SUCCESS = auto()
+    FAILURE = auto()
+    RUNNING = auto()
 
 
 @dataclass
@@ -35,3 +52,8 @@ class PullRequest:
     title: str
     url: str
     is_current: bool
+    review_decision: str
+    mergeable: str
+    is_draft: bool
+    reviewers: list[str]
+    checks_status: ChecksStatus

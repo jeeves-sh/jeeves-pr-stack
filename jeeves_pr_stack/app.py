@@ -1,10 +1,11 @@
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 from typer import Typer
 
 from jeeves_pr_stack import github
+from jeeves_pr_stack.models import PullRequest, ChecksStatus
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -13,10 +14,47 @@ app = Typer(
 )
 
 
+def format_status(pr: PullRequest) -> RenderableType:
+    if pr.checks_status == ChecksStatus.FAILURE:
+        return Text(
+            '❌ Checks failed',
+            style=Style(color='red'),
+        )
+
+    if pr.review_decision == 'REVIEW_REQUIRED':
+        formatted_reviewers = ', '.join(pr.reviewers)
+        return Text(
+            f'👀 Review required\n{formatted_reviewers}',
+            style=Style(color='yellow'),
+        )
+
+    if pr.is_draft:
+        return Text(
+            '📝 Draft',
+            style=Style(color='bright_black'),
+        )
+
+    return Text(
+        '✅ Ready to merge',
+        style=Style(
+            color='green',
+        ),
+    )
+
+
 @app.callback()
 def print_stack():
     """Print current PR stack."""
     stack = github.retrieve_stack()
+
+    console = Console()
+    if not stack:
+        console.print(
+            '∅ No PRs associated with current branch.\n',
+            style=Style(color='white', bold=True),
+        )
+        console.print('Use [code]gh pr create[/code] to create one.')
+        return
 
     table = Table(
         'Current',
@@ -54,11 +92,13 @@ def print_stack():
             is_current,
             str(pr.number),
             heading,
+            format_status(pr),
         )
 
-    console = Console()
-
     console.print(table)
-    console.print(
-        'Use [code]gh pr checkout <number>[/code] to switch to another PR.\n',
-    )
+
+    if len(stack) > 1:
+        console.print(
+            'Use [code]gh pr checkout <number>[/code] '
+            'to switch to another PR.\n',
+        )
