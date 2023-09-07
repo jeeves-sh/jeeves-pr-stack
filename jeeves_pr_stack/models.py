@@ -29,6 +29,7 @@ class PullRequestStatus(TypedDict):
 @dataclass
 class PullRequest:
     branch: str
+    base_branch: str
     title: str
     url: str
     is_current: bool

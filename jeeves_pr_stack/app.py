@@ -22,17 +22,36 @@ def print_stack():
         '',
         'PR',
         'Status',
-        title='Stack',
+        show_header=False,
+        show_lines=False,
+        show_edge=False,
+        box=None,
     )
 
     for pr in stack:
         is_current = '➤' if pr.is_current else ''
+
+        heading = Text()
+        heading.append(
+            pr.title,
+            style=Style(link=pr.url, bold=True),
+        )
+        heading.append(
+            f'\n{pr.branch}',
+            style=Style(color='magenta'),
+        )
+        heading.append(
+            f' → ',
+            style=None,
+        )
+        heading.append(
+            f'{pr.base_branch}\n',
+            style=Style(color='magenta'),
+        )
+
         table.add_row(
             is_current,
-            Text(
-                pr.title,
-                style=Style(link=pr.url),
-            ),
+            heading,
         )
 
     Console().print(table)

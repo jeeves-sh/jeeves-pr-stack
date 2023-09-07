@@ -31,6 +31,7 @@ def retrieve_stack() -> list[PullRequest]:
         PullRequest(
             title=pr['title'],
             branch=pr['headRefName'],
+            base_branch=pr['baseRefName'],
             url=pr['url'],
             is_current=pr['id'] == current_pr_id,
         )
