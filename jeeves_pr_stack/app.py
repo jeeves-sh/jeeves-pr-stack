@@ -8,6 +8,8 @@ from rich.text import Text
 from sh import gh
 from typer import Typer
 
+from jeeves_pr_stack.models import PullRequestStatus
+
 app = Typer(
     help='Manage stacks of GitHub PRs.',
     name='stack',
@@ -27,7 +29,7 @@ def print_stack():
         'title',
         'url',
     ]
-    response = json.loads(
+    response: PullRequestStatus = json.loads(
         gh.pr.status(
             json=','.join(fields),
             _env={
