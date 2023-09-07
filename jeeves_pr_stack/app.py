@@ -5,7 +5,7 @@ from rich.text import Text
 from typer import Typer
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.models import PullRequest, ChecksStatus
+from jeeves_pr_stack.models import ChecksStatus, PullRequest
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -15,6 +15,7 @@ app = Typer(
 
 
 def format_status(pr: PullRequest) -> RenderableType:
+    """Format PR status."""
     if pr.checks_status == ChecksStatus.FAILURE:
         return Text(
             '❌ Checks failed',
@@ -42,20 +43,7 @@ def format_status(pr: PullRequest) -> RenderableType:
     )
 
 
-@app.callback()
-def print_stack():
-    """Print current PR stack."""
-    stack = github.retrieve_stack()
-
-    console = Console()
-    if not stack:
-        console.print(
-            '∅ No PRs associated with current branch.\n',
-            style=Style(color='white', bold=True),
-        )
-        console.print('Use [code]gh pr create[/code] to create one.')
-        return
-
+def _print_stack(stack: list[PullRequest]):
     table = Table(
         'Current',
         'Number',
@@ -80,7 +68,7 @@ def print_stack():
             style=Style(color='magenta'),
         )
         heading.append(
-            f' → ',
+            ' → ',
             style=None,
         )
         heading.append(
@@ -95,10 +83,27 @@ def print_stack():
             format_status(pr),
         )
 
+    console = Console()
     console.print(table)
 
     if len(stack) > 1:
         console.print(
-            'Use [code]gh pr checkout <number>[/code] '
-            'to switch to another PR.\n',
+            'Use [code]gh pr checkout <number>[/code] to switch to another PR.',
         )
+
+
+@app.callback()
+def print_current_stack():
+    """Print current PR stack."""
+    stack = github.retrieve_stack()
+
+    if stack:
+        _print_stack(stack)
+        return
+
+    console = Console()
+    console.print(
+        '∅ No PRs associated with current branch.\n',
+        style=Style(color='white', bold=True),
+    )
+    console.print('Use [code]gh pr create[/code] to create one.')

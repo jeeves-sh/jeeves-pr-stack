@@ -2,19 +2,20 @@ import json
 import os
 
 import funcy
-from networkx import edge_dfs, DiGraph
-from sh import git, gh
+from networkx import DiGraph, edge_dfs
+from sh import gh, git
 
-from jeeves_pr_stack.models import (
-    PullRequest, RawPullRequest, ChecksStatus,
-)
+from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
 
 
 def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
-    raw_status_values = set(funcy.pluck(
-        'conclusion',
-        raw_pull_request['statusCheckRollup'],
-    ))
+    """Analyze checks for PR and express their status as one value."""
+    raw_status_values = set(
+        funcy.pluck(
+            'conclusion',
+            raw_pull_request['statusCheckRollup'],
+        ),
+    )
 
     # This one is not informative
     raw_status_values.discard('SUCCESS')
@@ -86,11 +87,13 @@ def retrieve_stack() -> list[PullRequest]:
         for pr in pull_requests
     }
 
-    graph = DiGraph(incoming_graph_data=[
-        # PR is directed from its head branch → to its base branch.
-        (pr.branch, pr.base_branch)
-        for pr in pull_requests
-    ])
+    graph = DiGraph(
+        incoming_graph_data=[
+            # PR is directed from its head branch → to its base branch.
+            (pr.branch, pr.base_branch)
+            for pr in pull_requests
+        ],
+    )
 
     successors = [
         (source, destination)
