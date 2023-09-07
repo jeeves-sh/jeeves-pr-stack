@@ -1,13 +1,12 @@
 import json
 import os
 
-from typer import Typer
-from sh import gh
+from rich.console import Console
+from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from rich.style import Style
-from rich.console import Console
-
+from sh import gh
+from typer import Typer
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -18,8 +17,14 @@ app = Typer(
 
 @app.callback()
 def print_stack():
+    """Print current PR stack."""
     fields = [
-        'baseRefName', 'headRefName', 'id', 'isDraft', 'mergeable', 'title',
+        'baseRefName',
+        'headRefName',
+        'id',
+        'isDraft',
+        'mergeable',
+        'title',
         'url',
     ]
     response = json.loads(
@@ -28,7 +33,7 @@ def print_stack():
             _env={
                 **os.environ,
                 'NO_COLOR': '1',
-            }
+            },
         ),
     )
 
