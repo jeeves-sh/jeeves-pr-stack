@@ -147,32 +147,11 @@ def comment():
 
 
 @app.command()
-def fork(context: Context):
-    """Fork from current branch, adding another item to the stack."""
-    console = Console()
+def split():
+    """Split current PR which is deemed to be too large."""
+    raise NotImplementedError()
 
-    state: State = context.obj
-    last_pull_request = funcy.last(state.stack)
-    if not last_pull_request.is_current:
-        console.print(
-            'Stack must be linear, so forking a PR in the middle of it is not '
-            'a good idea.\n',
-            style=Style(color='red'),
-        )
-        console.print('Please navigate to the last PR in the stack first:\n')
-        console.print(
-            f'  [code]gh pr checkout {last_pull_request.number}[/code]\n',
-        )
-        return
 
-    console.print('Current branch:\n')
-    console.print(f'  [code]{state.current_branch}[/code]\n')
-
-    branch = Prompt.ask('New branch name (will be created if missing)')
-
-    try:
-        git.switch(branch)
-    except ErrorReturnCode as err:
-        if 'invalid reference' in err.stderr.encode():
-            console.print('Branch unknown, creating one.')
-            git.switch('-c', branch)
+@app.command()
+def append():
+    """Direct current branch/PR to an existing PR."""
