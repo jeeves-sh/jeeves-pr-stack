@@ -8,10 +8,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-jeeves-shell = {extras = ["all"], version = "^2.2.0"}
+jeeves-shell = {extras = ["all"], version = ">=2.3.0"}
 
 [tool.poetry.group.dev.dependencies]
-jeeves-yeti-pyproject = "^0.2.20"
+jeeves-yeti-pyproject = ">=0.2.21"
 
 [tool.poetry.plugins.jeeves]
 stack = "jeeves_pr_stack:app"
