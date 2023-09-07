@@ -4,7 +4,7 @@ from rich.style import Style
 from rich.prompt import Prompt
 from rich.table import Table
 from rich.text import Text
-from typer import Typer, Context
+from typer import Typer, Context, Exit
 from sh import git, ErrorReturnCode
 
 from jeeves_pr_stack import github
@@ -153,5 +153,20 @@ def split():
 
 
 @app.command()
-def append():
+def append(context: Context):
     """Direct current branch/PR to an existing PR."""
+    console = Console()
+    state: State = context.obj
+
+    if state.stack:
+        console.print(
+            '\n🚫 This PR is already part of a stack.\n',
+            style=Style(color='red', bold=True),
+        )
+        raise Exit(1)
+
+    pull_requests = github.retrieve_pull_requests_to_append(
+        current_branch=state.current_branch,
+    )
+
+    console.print(pull_requests)
