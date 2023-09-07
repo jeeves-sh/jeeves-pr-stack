@@ -1,4 +1,5 @@
 import json
+import operator
 import os
 
 import funcy
@@ -127,5 +128,15 @@ def retrieve_stack(current_branch: str) -> list[PullRequest]:
 
 
 def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
+    """Determine which PRs we can direct a new PR to."""
     pull_requests = retrieve_pull_requests(current_branch=current_branch)
-    return pull_requests
+
+    directed_to = {
+        pr.base_branch: pr.branch
+        for pr in pull_requests
+    }
+
+    return sorted([
+        pr
+        for pr in pull_requests if directed_to.get(pr.branch) is None
+    ], key=operator.attrgetter('number'), reverse=True)

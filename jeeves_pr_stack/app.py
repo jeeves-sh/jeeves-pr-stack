@@ -1,11 +1,11 @@
 import funcy
 from rich.console import Console, RenderableType
-from rich.style import Style
 from rich.prompt import Prompt
+from rich.style import Style
 from rich.table import Table
 from rich.text import Text
+from sh import gh
 from typer import Typer, Context, Exit
-from sh import git, ErrorReturnCode
 
 from jeeves_pr_stack import github
 from jeeves_pr_stack.models import ChecksStatus, PullRequest, State
@@ -165,8 +165,25 @@ def append(context: Context):
         )
         raise Exit(1)
 
+    console.print(f'Current branch:\n  {state.current_branch}\n')
+
     pull_requests = github.retrieve_pull_requests_to_append(
         current_branch=state.current_branch,
     )
 
-    console.print(pull_requests)
+    _print_stack(pull_requests)
+
+    choices = [str(pr.number) for pr in pull_requests]
+    number = int(
+        Prompt.ask(
+            'Select the PR',
+            choices=choices,
+            show_choices=True,
+            default=funcy.first(choices),
+        ),
+    )
+
+    pull_request_by_number = {pr.number: pr for pr in pull_requests}
+    base_pull_request = pull_request_by_number[number]
+
+    gh.pr.create(base=base_pull_request.branch, assignee='@me', _fg=True)
