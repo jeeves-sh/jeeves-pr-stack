@@ -37,6 +37,38 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
     return ChecksStatus.SUCCESS
 
 
+def construct_stack_for_branch(
+    branch: str,
+    pull_requests: list[PullRequest],
+) -> list[PullRequest]:
+    """Construct sequence of PRs that covers the given branch."""
+    pull_request_by_branch = {
+        pr.branch: pr
+        for pr in pull_requests
+    }
+
+    graph = DiGraph(
+        incoming_graph_data=[
+            # PR is directed from its head branch → to its base branch.
+            (pr.branch, pr.base_branch)
+            for pr in pull_requests
+        ],
+    )
+
+    successors = [
+        (source, destination)
+        for source, destination, _reverse
+        in edge_dfs(graph, source=branch, orientation='reverse')
+    ]
+    predecessors = list(edge_dfs(graph, source=branch))
+    edges = predecessors + successors
+
+    return [
+        pull_request_by_branch[branch]
+        for branch, _base_branch in edges
+    ]
+
+
 def retrieve_stack() -> list[PullRequest]:
     """Retrieve the current PR stack."""
     current_branch = git.branch('--show-current').strip()
@@ -82,28 +114,7 @@ def retrieve_stack() -> list[PullRequest]:
         for raw_pull_request in raw_pull_requests
     ]
 
-    pull_request_by_branch = {
-        pr.branch: pr
-        for pr in pull_requests
-    }
-
-    graph = DiGraph(
-        incoming_graph_data=[
-            # PR is directed from its head branch → to its base branch.
-            (pr.branch, pr.base_branch)
-            for pr in pull_requests
-        ],
+    return construct_stack_for_branch(
+        branch=current_branch,
+        pull_requests=pull_requests,
     )
-
-    successors = [
-        (source, destination)
-        for source, destination, _reverse
-        in edge_dfs(graph, source=current_branch, orientation='reverse')
-    ]
-    predecessors = list(edge_dfs(graph, source=current_branch))
-    edges = predecessors + successors
-
-    return [
-        pull_request_by_branch[branch]
-        for branch, _base_branch in edges
-    ]
