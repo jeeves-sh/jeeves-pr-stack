@@ -1,6 +1,7 @@
 import json
 import os
 
+import rich
 from rich.console import Console
 from rich.style import Style
 from rich.table import Table
@@ -38,18 +39,24 @@ def print_stack():
             },
         ),
     )
+    # rich.print(response)
 
     table = Table(
+        '',
         'PR',
         'Status',
         title='Stack',
     )
 
-    table.add_row(
-        Text(
-            response['currentBranch']['title'],
-            style=Style(link=response['currentBranch']['url']),
-        ),
-    )
+    current_pr_id = response['currentBranch']['id']
+    for pr in reversed(response['createdBy']):
+        is_current = '➤' if pr['id'] == current_pr_id else ''
+        table.add_row(
+            is_current,
+            Text(
+                pr['title'],
+                style=Style(link=pr['url']),
+            ),
+        )
 
     Console().print(table)

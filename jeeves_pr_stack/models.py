@@ -6,9 +6,20 @@ class CurrentBranch(TypedDict):
 
     title: str
     url: str
+    baseRefName: str
+    id: str
+
+
+class CreatedBy(TypedDict):
+    baseRefName: str
+    headRefName: str
+    title: str
+    url: str
+    id: str
 
 
 class PullRequestStatus(TypedDict):
     """Raw output from gh CLI."""
 
-    currentBranch: CurrentBranch   # noqa: WPS115
+    createdBy: list[CreatedBy]
+    currentBranch: CurrentBranch

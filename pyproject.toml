@@ -19,3 +19,10 @@ stack = "jeeves_pr_stack:app"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.flakeheaven.exceptions."jeeves_gh_stack/models.py"]
+wemake-python-styleguide = [
+    "-WPS115",  # TypedDicts describing GH CLI output need CamelCase field names
+]
+
