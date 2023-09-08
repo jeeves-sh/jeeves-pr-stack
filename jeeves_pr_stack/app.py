@@ -83,13 +83,6 @@ def _print_stack(stack: list[PullRequest]):
             style=Style(color='magenta'),
         )
 
-        if is_top_pr:
-            heading.append('Top PR', style=Style(
-                bold=True,
-                reverse=True,
-            ))
-            heading.append(' Start merging the stack from here.\n')
-
         table.add_row(
             is_current,
             str(pr.number),
@@ -126,7 +119,10 @@ def print_current_stack(context: PRStackContext):
         '∅ No PRs associated with current branch.\n',
         style=Style(color='white', bold=True),
     )
-    console.print('Use [code]gh pr create[/code] to create one.')
+    console.print('• Use [code]gh pr create[/code] to create one,')
+    console.print(
+        '• Or [code]j stack append[/code] to stack it onto another PR.',
+    )
 
 
 @app.command()
