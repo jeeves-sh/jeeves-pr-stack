@@ -5,10 +5,13 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 from sh import gh
-from typer import Typer, Context, Exit
+from typer import Typer, Exit
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.models import ChecksStatus, PullRequest, State
+from jeeves_pr_stack.models import (
+    ChecksStatus, PullRequest, State,
+    PRStackContext,
+)
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -104,7 +107,7 @@ def _print_stack(stack: list[PullRequest]):
 
 
 @app.callback()
-def print_current_stack(context: Context):
+def print_current_stack(context: PRStackContext):
     """Print current PR stack."""
     current_branch = github.retrieve_current_branch()
     stack = github.retrieve_stack(current_branch=current_branch)
@@ -133,9 +136,9 @@ def rebase():
 
 
 @app.command()
-def merge():
+def merge(context: PRStackContext):
     """Merge current stack, starting from the top."""
-    raise NotImplementedError()
+
 
 
 @app.command()
@@ -153,10 +156,10 @@ def split():
 
 
 @app.command()
-def append(context: Context):
+def append(context: PRStackContext):
     """Direct current branch/PR to an existing PR."""
     console = Console()
-    state: State = context.obj
+    state = context.obj
 
     if state.stack:
         console.print(
