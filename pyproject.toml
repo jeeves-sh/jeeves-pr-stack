@@ -8,10 +8,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-jeeves-shell = {extras = ["all"], version = "^2.2.0"}
+jeeves-shell = {extras = ["all"], version = ">=2.3.0"}
+networkx = "^3.1"
 
 [tool.poetry.group.dev.dependencies]
-jeeves-yeti-pyproject = "^0.2.20"
+jeeves-yeti-pyproject = ">=0.2.21"
 
 [tool.poetry.plugins.jeeves]
 stack = "jeeves_pr_stack:app"
@@ -19,3 +20,10 @@ stack = "jeeves_pr_stack:app"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.flakeheaven.exceptions."jeeves_gh_stack/models.py"]
+wemake-python-styleguide = [
+    "-WPS115",  # TypedDicts describing GH CLI output need CamelCase field names
+]
+

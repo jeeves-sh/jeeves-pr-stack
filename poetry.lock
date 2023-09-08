@@ -718,13 +718,13 @@ smmap = ">=3.0.1,<6"
 
 [[package]]
 name = "gitpython"
-version = "3.1.34"
+version = "3.1.35"
 description = "GitPython is a Python library used to interact with Git repositories"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "GitPython-3.1.34-py3-none-any.whl", hash = "sha256:5d3802b98a3bae1c2b8ae0e1ff2e4aa16bcdf02c145da34d092324f599f01395"},
-    {file = "GitPython-3.1.34.tar.gz", hash = "sha256:85f7d365d1f6bf677ae51039c1ef67ca59091c7ebd5a3509aa399d4eda02d6dd"},
+    {file = "GitPython-3.1.35-py3-none-any.whl", hash = "sha256:c19b4292d7a1d3c0f653858db273ff8a6614100d1eb1528b014ec97286193c09"},
+    {file = "GitPython-3.1.35.tar.gz", hash = "sha256:9cbefbd1789a5fe9bcf621bb34d3f441f3a90c8461d377f84eda73e721d9b06b"},
 ]
 
 [package.dependencies]
@@ -827,13 +827,13 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "jeeves-shell"
-version = "2.2.0"
+version = "2.3.0"
 description = "Pythonic replacement for GNU Make"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "jeeves_shell-2.2.0-py3-none-any.whl", hash = "sha256:acb91da33edb78f60d497979214b3486e24425d52304b8677c5eef99e7dd6bbc"},
-    {file = "jeeves_shell-2.2.0.tar.gz", hash = "sha256:ff47b9e245643f722956f28bc4731b9419af3ebe585dffa9aaae90ffd8ea9e3f"},
+    {file = "jeeves_shell-2.3.0-py3-none-any.whl", hash = "sha256:f9e3a3cf41faf226ebfc4c8cb01dcb0c793f780e736ef1137661b45ab5f062be"},
+    {file = "jeeves_shell-2.3.0.tar.gz", hash = "sha256:1e70340efb1b58d51efee63e96231ef092ccb7d13f5c178426c17e2ac613c259"},
 ]
 
 [package.dependencies]
@@ -848,19 +848,19 @@ all = ["rich (>=13.3.5,<14.0.0)", "sh (>=2.0.4,<3.0.0)"]
 
 [[package]]
 name = "jeeves-yeti-pyproject"
-version = "0.2.20"
+version = "0.2.21"
 description = "Opinionated Jeeves plugin for Python projects."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "jeeves_yeti_pyproject-0.2.20-py3-none-any.whl", hash = "sha256:d1e92d65723c345ff00722ec8f5fc2431aaea34ff60ef62c6b18fbd896100522"},
-    {file = "jeeves_yeti_pyproject-0.2.20.tar.gz", hash = "sha256:09ec3acc7c241fd48a57c32301ff609675e444d7a1cae5b6590543a2d4dc273e"},
+    {file = "jeeves_yeti_pyproject-0.2.21-py3-none-any.whl", hash = "sha256:23647c1149ab5b5c0ebcc51a5cb33577625ed454a1bd12ed22224d5c6d355d76"},
+    {file = "jeeves_yeti_pyproject-0.2.21.tar.gz", hash = "sha256:079304c23b43afbf261e595b21337114cd449a63c282acb7db8b9d046e7b039f"},
 ]
 
 [package.dependencies]
 add-trailing-comma = ">=2.4.0,<3.0.0"
 flakeheaven = ">=3.2.1,<4.0.0"
-jeeves-shell = {version = ">2.1.10", extras = ["all"]}
+jeeves-shell = {version = ">=2.3.0", extras = ["all"]}
 mkdocs = ">=1.4.2,<2.0.0"
 mkdocs-iolanta = ">=0.1.0,<0.2.0"
 mkdocs-macros-plugin = ">=0.7.0,<0.8.0"
@@ -1294,6 +1294,24 @@ python-versions = ">=2.7"
 files = [
     {file = "mypy_extensions-0.4.4.tar.gz", hash = "sha256:c8b707883a96efe9b4bb3aaf0dcc07e7e217d7d8368eec4db4049ee9e142f4fd"},
 ]
+
+[[package]]
+name = "networkx"
+version = "3.1"
+description = "Python package for creating and manipulating graphs and networks"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "networkx-3.1-py3-none-any.whl", hash = "sha256:4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36"},
+    {file = "networkx-3.1.tar.gz", hash = "sha256:de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61"},
+]
+
+[package.extras]
+default = ["matplotlib (>=3.4)", "numpy (>=1.20)", "pandas (>=1.3)", "scipy (>=1.8)"]
+developer = ["mypy (>=1.1)", "pre-commit (>=3.2)"]
+doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.4)", "pydata-sphinx-theme (>=0.13)", "sphinx (>=6.1)", "sphinx-gallery (>=0.12)", "texext (>=0.6.7)"]
+extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.10)", "sympy (>=1.10)"]
+test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
 name = "owlrl"
@@ -2132,4 +2150,4 @@ typing_extensions = ">=4.0,<5.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "6d5a468a6871b15296da0a05c497468ce5c48d178b4674a2867fe225b6278073"
+content-hash = "5865adab7a7c83b40bd203d76b01767a0959121bfb7175956628205db44627a8"
