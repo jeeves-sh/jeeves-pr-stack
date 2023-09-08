@@ -1,11 +1,14 @@
+import funcy
 from rich.console import Console, RenderableType
 from rich.style import Style
+from rich.prompt import Prompt
 from rich.table import Table
 from rich.text import Text
-from typer import Typer
+from typer import Typer, Context
+from sh import git, ErrorReturnCode
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.models import ChecksStatus, PullRequest
+from jeeves_pr_stack.models import ChecksStatus, PullRequest, State
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -101,9 +104,15 @@ def _print_stack(stack: list[PullRequest]):
 
 
 @app.callback()
-def print_current_stack():
+def print_current_stack(context: Context):
     """Print current PR stack."""
-    stack = github.retrieve_stack()
+    current_branch = github.retrieve_current_branch()
+    stack = github.retrieve_stack(current_branch=current_branch)
+
+    context.obj = State(
+        current_branch=current_branch,
+        stack=stack,
+    )
 
     if stack:
         _print_stack(stack)
@@ -115,3 +124,34 @@ def print_current_stack():
         style=Style(color='white', bold=True),
     )
     console.print('Use [code]gh pr create[/code] to create one.')
+
+
+@app.command()
+def rebase():
+    """Rebase current stack."""
+    raise NotImplementedError()
+
+
+@app.command()
+def merge():
+    """Merge current stack, starting from the top."""
+    raise NotImplementedError()
+
+
+@app.command()
+def comment():
+    """
+    Add or update a comment with a navigation table to each PR in current stack.
+    """
+    raise NotImplementedError()
+
+
+@app.command()
+def split():
+    """Split current PR which is deemed to be too large."""
+    raise NotImplementedError()
+
+
+@app.command()
+def append():
+    """Direct current branch/PR to an existing PR."""

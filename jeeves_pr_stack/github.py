@@ -69,10 +69,12 @@ def construct_stack_for_branch(   # noqa: WPS210
     ]
 
 
-def retrieve_stack() -> list[PullRequest]:
-    """Retrieve the current PR stack."""
-    current_branch = git.branch('--show-current').strip()
+def retrieve_current_branch() -> str:
+    return git.branch('--show-current').strip()
 
+
+def retrieve_stack(current_branch: str) -> list[PullRequest]:
+    """Retrieve the current PR stack."""
     fields = [
         'number',
         'baseRefName',
