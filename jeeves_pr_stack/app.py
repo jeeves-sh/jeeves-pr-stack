@@ -1,8 +1,5 @@
-import time
-
 import funcy
 from rich.console import Console, RenderableType
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt
 from rich.style import Style
 from rich.table import Table
@@ -190,6 +187,9 @@ def append(context: PRStackContext):   # noqa: WPS210
     pull_requests = github.retrieve_pull_requests_to_append(
         current_branch=state.current_branch,
     )
+
+    if not pull_requests:
+        raise ValueError('No PRs found which this branch could refer to.')
 
     _print_stack(pull_requests)
 

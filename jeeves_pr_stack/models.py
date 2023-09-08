@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TypedDict, Generic, TypeVar, NamedTuple
+from typing import TypedDict, Generic, TypeVar
 
 from typer import Context
 
@@ -65,6 +65,7 @@ class PullRequest:
     checks_status: ChecksStatus
 
     def __repr__(self):
+        """Represent a PR for printing."""
         return (
             f'#{self.number} {self.title} | {self.branch} → {self.base_branch}'
         )

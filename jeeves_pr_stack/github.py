@@ -159,6 +159,7 @@ def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
 
 
 def retrieve_default_branch() -> str:
+    """Get default branch of current repository."""
     return json.loads(
         gh.repo.view(
             json='defaultBranchRef',
