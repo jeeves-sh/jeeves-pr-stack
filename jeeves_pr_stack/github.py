@@ -1,4 +1,5 @@
 import json
+import operator
 import os
 
 import funcy
@@ -73,8 +74,7 @@ def retrieve_current_branch() -> str:
     return git.branch('--show-current').strip()
 
 
-def retrieve_stack(current_branch: str) -> list[PullRequest]:
-    """Retrieve the current PR stack."""
+def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:
     fields = [
         'number',
         'baseRefName',
@@ -99,7 +99,7 @@ def retrieve_stack(current_branch: str) -> list[PullRequest]:
         ),
     )
 
-    pull_requests = [
+    return [
         PullRequest(
             is_current=raw_pull_request['headRefName'] == current_branch,
             number=raw_pull_request['number'],
@@ -116,7 +116,27 @@ def retrieve_stack(current_branch: str) -> list[PullRequest]:
         for raw_pull_request in raw_pull_requests
     ]
 
+
+def retrieve_stack(current_branch: str) -> list[PullRequest]:
+    """Retrieve the current PR stack."""
+    pull_requests = retrieve_pull_requests(current_branch=current_branch)
+
     return construct_stack_for_branch(
         branch=current_branch,
         pull_requests=pull_requests,
     )
+
+
+def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
+    """Determine which PRs we can direct a new PR to."""
+    pull_requests = retrieve_pull_requests(current_branch=current_branch)
+
+    directed_to = {
+        pr.base_branch: pr.branch
+        for pr in pull_requests
+    }
+
+    return sorted([
+        pr
+        for pr in pull_requests if directed_to.get(pr.branch) is None
+    ], key=operator.attrgetter('number'), reverse=True)
