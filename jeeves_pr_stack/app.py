@@ -1,10 +1,13 @@
+import time
+
 import funcy
 from rich.console import Console, RenderableType
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from sh import gh
+from sh import gh, git
 from typer import Typer, Exit
 
 from jeeves_pr_stack import github
@@ -131,8 +134,30 @@ def rebase():
 
 
 @app.command()
-def merge(context: PRStackContext):
-    """Merge current stack, starting from the top."""
+def merge_top_pr(context: PRStackContext):
+    """Merge the top PR of current stack."""
+    if not context.obj.stack:
+        raise ValueError('Nothing to merge, current stack is empty.')
+
+    top_pr, *remaining_prs = context.obj.stack
+
+    default_branch = github.retrieve_default_branch()
+    console = Console()
+    console.print('PR to merge: ', top_pr)
+    if top_pr.base_branch != default_branch:
+        raise ValueError('Base branch of the PR ≠ default branch of the repo.')
+
+    if remaining_prs:
+        dependant_pr, *_etc = remaining_prs
+        console.print(f'Changing base of {dependant_pr} to {default_branch}')
+        gh.pr.edit('--base', default_branch, dependant_pr.number)
+
+    console.print(f'Merging {top_pr}...')
+    gh.pr.merge('--merge', top_pr.number)
+
+    console.print(f'Deleting branch: {top_pr.branch}')
+    git.push.origin(delete=top_pr.branch)
+    console.print('OK.')
 
 
 @app.command()

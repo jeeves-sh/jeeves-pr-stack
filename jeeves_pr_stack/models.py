@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TypedDict, Generic, TypeVar
+from typing import TypedDict, Generic, TypeVar, NamedTuple
 
 from typer import Context
 
@@ -63,6 +63,11 @@ class PullRequest:
     is_draft: bool
     reviewers: list[str]
     checks_status: ChecksStatus
+
+    def __repr__(self):
+        return (
+            f'#{self.number} {self.title} | {self.branch} → {self.base_branch}'
+        )
 
 
 @dataclass
