@@ -61,9 +61,8 @@ def _print_stack(stack: list[PullRequest]):
         box=None,
     )
 
-    for index, pr in enumerate(stack):
+    for pr in stack:
         is_current = '➤' if pr.is_current else ''
-        is_top_pr = (index == 0)
 
         heading = Text()
         heading.append(
@@ -136,12 +135,9 @@ def merge(context: PRStackContext):
     """Merge current stack, starting from the top."""
 
 
-
 @app.command()
 def comment():
-    """
-    Add or update a comment with a navigation table to each PR in current stack.
-    """
+    """Comment on each PR of current stack with a navigation table."""
     raise NotImplementedError()
 
 
@@ -152,7 +148,7 @@ def split():
 
 
 @app.command()
-def append(context: PRStackContext):
+def append(context: PRStackContext):   # noqa: WPS210
     """Direct current branch/PR to an existing PR."""
     console = Console()
     state = context.obj

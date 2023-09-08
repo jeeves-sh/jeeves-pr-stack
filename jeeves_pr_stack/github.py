@@ -71,10 +71,16 @@ def construct_stack_for_branch(   # noqa: WPS210
 
 
 def retrieve_current_branch() -> str:
+    """Retrieve current git branch name."""
     return git.branch('--show-current').strip()
 
 
 def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:
+    """
+    Retrieve a list of all open PRs in the repo.
+
+    Mark the one bound to current branch with `is_current` field.
+    """
     fields = [
         'number',
         'baseRefName',
@@ -136,7 +142,12 @@ def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
         for pr in pull_requests
     }
 
-    return sorted([
-        pr
-        for pr in pull_requests if directed_to.get(pr.branch) is None
-    ], key=operator.attrgetter('number'), reverse=True)
+    return sorted(
+        [
+            pr
+            for pr in pull_requests
+            if directed_to.get(pr.branch) is None
+        ],
+        key=operator.attrgetter('number'),
+        reverse=True,
+    )

@@ -79,7 +79,7 @@ StateType = TypeVar('StateType')
 class TypedContext(Context, Generic[StateType]):
     """Typed context."""
 
-    obj: StateType
+    obj: StateType   # noqa: WPS110
 
 
 class PRStackContext(TypedContext[State]):
