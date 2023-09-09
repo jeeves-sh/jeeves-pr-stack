@@ -1,6 +1,7 @@
 import funcy
+import typer
 from rich.console import Console
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
 from rich.style import Style
 from sh import gh, git
 from typer import Typer, Exit
@@ -71,12 +72,21 @@ def pop(context: PRStackContext):
 
     default_branch = github.retrieve_default_branch()
     console = Console()
-    console.print('PR to merge: ', top_pr)
     if top_pr.base_branch != default_branch:
         raise ValueError('Base branch of the PR ≠ default branch of the repo.')
 
+    dependant_pr = None
     if remaining_prs:
         dependant_pr = funcy.first(remaining_prs)
+
+    console.print('PR to merge: ', top_pr)
+    console.print('Dependant PR: ', dependant_pr)
+
+    if not Confirm.ask('Do you confirm?', default=True):
+        console.print('Aborted.', style='red')
+        raise typer.Exit(1)
+
+    if dependant_pr is not None:
         console.print(f'Changing base of {dependant_pr} to {default_branch}')
         gh.pr.edit('--base', default_branch, dependant_pr.number)
 
@@ -84,7 +94,7 @@ def pop(context: PRStackContext):
     gh.pr.merge('--merge', top_pr.number)
 
     console.print(f'Deleting branch: {top_pr.branch}')
-    git.push.origin(delete=top_pr.branch)
+    git.push.origin('--delete', top_pr.branch)
     console.print('OK.')
 
 
