@@ -1,9 +1,14 @@
 from rich.console import RenderableType
+from rich.markdown import Markdown
 from rich.style import Style
-from rich.table import Table
+from rich.table import Table, Column
 from rich.text import Text
 
 from jeeves_pr_stack.models import PullRequest, ChecksStatus
+
+
+bullet_point = '◉'
+vertical_line = '│'
 
 
 def format_status(pr: PullRequest) -> RenderableType:
@@ -17,7 +22,7 @@ def format_status(pr: PullRequest) -> RenderableType:
     if pr.review_decision == 'REVIEW_REQUIRED':
         formatted_reviewers = ', '.join(pr.reviewers)
         return Text(
-            f'👀 Review required\n{formatted_reviewers}',
+            f'👀 Review required: {formatted_reviewers}',
             style=Style(color='yellow'),
         )
 
@@ -33,6 +38,64 @@ def format_status(pr: PullRequest) -> RenderableType:
             color='green',
         ),
     )
+
+
+def format_branch(name: str, is_default: bool, is_current: bool) -> Text:
+    pointer = ' '
+    if is_current:
+        color = 'bright_blue'
+        pointer = '➡️'
+
+    elif is_default:
+        color = 'red'
+
+    else:
+        color = 'bright_yellow'
+
+    return Text(
+        f' {pointer}  {bullet_point} {name}\n',
+        style=f'bold {color}',
+    )
+
+
+def pull_request_stack_as_table(
+    stack: list[PullRequest],
+    current_branch: str,
+    default_branch: str,
+):
+    output = Text()
+    stack = list(reversed(stack))
+
+    output.append(
+        format_branch(
+            name=stack[0].branch,
+            is_current=stack[0].branch == current_branch,
+            is_default=stack[0].branch == default_branch,
+        ),
+    )
+
+    for pull_request in stack:
+        output.append(f'\n    {vertical_line}\n')
+        output.append(f'    {vertical_line}   ')
+        output.append(f'{pull_request.number:>#5} ', style='bold magenta')
+        output.append(pull_request.title, style=Style(link=pull_request.url))
+        output.append(f'\n')
+
+        output.append(f'    {vertical_line}         ')
+        output.append(format_status(pull_request))
+        output.append(f'\n    {vertical_line}\n')
+
+        output.append('    🭭 \n')
+
+        output.append(
+            format_branch(
+                name=pull_request.base_branch,
+                is_current=pull_request.base_branch == current_branch,
+                is_default=pull_request.base_branch == default_branch,
+            ),
+        )
+
+    return output
 
 
 def pull_request_list_as_table(stack: list[PullRequest]):

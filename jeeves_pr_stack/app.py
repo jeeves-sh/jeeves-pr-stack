@@ -6,7 +6,10 @@ from sh import gh, git
 from typer import Typer, Exit
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.format import pull_request_list_as_table
+from jeeves_pr_stack.format import (
+    pull_request_list_as_table,
+    pull_request_stack_as_table,
+)
 from jeeves_pr_stack.models import (
     State,
     PRStackContext,
@@ -31,8 +34,13 @@ def print_current_stack(context: PRStackContext):
     )
 
     console = Console()
+    default_branch = github.retrieve_default_branch()
     if stack:
-        console.print(pull_request_list_as_table(stack))
+        console.print(pull_request_stack_as_table(
+            stack,
+            default_branch=default_branch,
+            current_branch=current_branch,
+        ))
         return
 
     console.print(
