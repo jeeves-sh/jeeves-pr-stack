@@ -49,7 +49,7 @@ def format_status(pr: PullRequest) -> RenderableType:
     )
 
 
-def _print_stack(stack: list[PullRequest]):
+def pull_request_list_as_table(stack: list[PullRequest]):
     table = Table(
         'Current',
         'Number',
@@ -89,13 +89,7 @@ def _print_stack(stack: list[PullRequest]):
             format_status(pr),
         )
 
-    console = Console()
-    console.print(table)
-
-    if len(stack) > 1:
-        console.print(
-            'Use [code]gh pr checkout <number>[/code] to switch to another PR.',
-        )
+    return table
 
 
 @app.callback()
@@ -109,11 +103,11 @@ def print_current_stack(context: PRStackContext):
         stack=stack,
     )
 
+    console = Console()
     if stack:
-        _print_stack(stack)
+        console.print(pull_request_list_as_table(stack))
         return
 
-    console = Console()
     console.print(
         '∅ No PRs associated with current branch.\n',
         style=Style(color='white', bold=True),
@@ -193,7 +187,7 @@ def push(context: PRStackContext):   # noqa: WPS210
     if not pull_requests:
         raise ValueError('No PRs found which this branch could refer to.')
 
-    _print_stack(pull_requests)
+    console.print(pull_request_list_as_table(pull_requests))
 
     choices = [str(pr.number) for pr in pull_requests]
     number = int(
