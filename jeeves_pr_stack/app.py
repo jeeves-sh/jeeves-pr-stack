@@ -120,8 +120,10 @@ def print_current_stack(context: PRStackContext):
     )
     console.print('• Use [code]gh pr create[/code] to create one,')
     console.print(
-        '• Or [code]j stack append[/code] to stack it onto another PR.',
+        '• Or [code]j stack push[/code] to stack it onto another PR.',
     )
+    console.print()
+    console.print('Get more help with [code]j stack --help[/code].')
 
 
 @app.command()
@@ -131,8 +133,8 @@ def rebase():
 
 
 @app.command()
-def merge_top_pr(context: PRStackContext):
-    """Merge the top PR of current stack."""
+def pop(context: PRStackContext):
+    """Merge the bottom-most PR of current stack to the main branch."""
     if not context.obj.stack:
         raise ValueError('Nothing to merge, current stack is empty.')
 
@@ -170,7 +172,7 @@ def split():
 
 
 @app.command()
-def append(context: PRStackContext):   # noqa: WPS210
+def push(context: PRStackContext):   # noqa: WPS210
     """Direct current branch/PR to an existing PR."""
     console = Console()
     state = context.obj
