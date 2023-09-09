@@ -1,9 +1,3 @@
----
-hide:
-  - navigation
-  - toc
----
-
 # `jeeves-pr-stack`
 
 `jeeves-pr-stack` is a plugin for [jeeves](https://jeeves.sh) that helps manage stacks of GitHub pull requests. It aims to simplify the code review process by organizing pull requests that depend on each other.
