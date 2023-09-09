@@ -1,7 +1,6 @@
 import json
 import operator
 import os
-from typing import Iterable
 
 import funcy
 from networkx import DiGraph, edge_dfs
