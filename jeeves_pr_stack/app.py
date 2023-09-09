@@ -4,11 +4,14 @@ from rich.prompt import Prompt
 from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from sh import gh
-from typer import Typer, Context, Exit
+from sh import gh, git
+from typer import Typer, Exit
 
 from jeeves_pr_stack import github
-from jeeves_pr_stack.models import ChecksStatus, PullRequest, State
+from jeeves_pr_stack.models import (
+    ChecksStatus, PullRequest, State,
+    PRStackContext,
+)
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -58,9 +61,8 @@ def _print_stack(stack: list[PullRequest]):
         box=None,
     )
 
-    for index, pr in enumerate(stack):
+    for pr in stack:
         is_current = '➤' if pr.is_current else ''
-        is_top_pr = (index == 0)
 
         heading = Text()
         heading.append(
@@ -80,13 +82,6 @@ def _print_stack(stack: list[PullRequest]):
             style=Style(color='magenta'),
         )
 
-        if is_top_pr:
-            heading.append('Top PR', style=Style(
-                bold=True,
-                reverse=True,
-            ))
-            heading.append(' Start merging the stack from here.\n')
-
         table.add_row(
             is_current,
             str(pr.number),
@@ -104,7 +99,7 @@ def _print_stack(stack: list[PullRequest]):
 
 
 @app.callback()
-def print_current_stack(context: Context):
+def print_current_stack(context: PRStackContext):
     """Print current PR stack."""
     current_branch = github.retrieve_current_branch()
     stack = github.retrieve_stack(current_branch=current_branch)
@@ -123,7 +118,10 @@ def print_current_stack(context: Context):
         '∅ No PRs associated with current branch.\n',
         style=Style(color='white', bold=True),
     )
-    console.print('Use [code]gh pr create[/code] to create one.')
+    console.print('• Use [code]gh pr create[/code] to create one,')
+    console.print(
+        '• Or [code]j stack append[/code] to stack it onto another PR.',
+    )
 
 
 @app.command()
@@ -133,16 +131,35 @@ def rebase():
 
 
 @app.command()
-def merge():
-    """Merge current stack, starting from the top."""
-    raise NotImplementedError()
+def merge_top_pr(context: PRStackContext):
+    """Merge the top PR of current stack."""
+    if not context.obj.stack:
+        raise ValueError('Nothing to merge, current stack is empty.')
+
+    top_pr, *remaining_prs = context.obj.stack
+
+    default_branch = github.retrieve_default_branch()
+    console = Console()
+    console.print('PR to merge: ', top_pr)
+    if top_pr.base_branch != default_branch:
+        raise ValueError('Base branch of the PR ≠ default branch of the repo.')
+
+    if remaining_prs:
+        dependant_pr, *_etc = remaining_prs
+        console.print(f'Changing base of {dependant_pr} to {default_branch}')
+        gh.pr.edit('--base', default_branch, dependant_pr.number)
+
+    console.print(f'Merging {top_pr}...')
+    gh.pr.merge('--merge', top_pr.number)
+
+    console.print(f'Deleting branch: {top_pr.branch}')
+    git.push.origin(delete=top_pr.branch)
+    console.print('OK.')
 
 
 @app.command()
 def comment():
-    """
-    Add or update a comment with a navigation table to each PR in current stack.
-    """
+    """Comment on each PR of current stack with a navigation table."""
     raise NotImplementedError()
 
 
@@ -153,10 +170,10 @@ def split():
 
 
 @app.command()
-def append(context: Context):
+def append(context: PRStackContext):   # noqa: WPS210
     """Direct current branch/PR to an existing PR."""
     console = Console()
-    state: State = context.obj
+    state = context.obj
 
     if state.stack:
         console.print(
@@ -170,6 +187,9 @@ def append(context: Context):
     pull_requests = github.retrieve_pull_requests_to_append(
         current_branch=state.current_branch,
     )
+
+    if not pull_requests:
+        raise ValueError('No PRs found which this branch could refer to.')
 
     _print_stack(pull_requests)
 

@@ -1,6 +1,7 @@
 import json
 import operator
 import os
+from typing import Iterable
 
 import funcy
 from networkx import DiGraph, edge_dfs
@@ -71,10 +72,23 @@ def construct_stack_for_branch(   # noqa: WPS210
 
 
 def retrieve_current_branch() -> str:
+    """Retrieve current git branch name."""
     return git.branch('--show-current').strip()
 
 
+def _construct_gh_env() -> dict[str, str]:
+    return {
+        **os.environ,
+        'NO_COLOR': '1',
+    }
+
+
 def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:
+    """
+    Retrieve a list of all open PRs in the repo.
+
+    Mark the one bound to current branch with `is_current` field.
+    """
     fields = [
         'number',
         'baseRefName',
@@ -92,10 +106,7 @@ def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:
     raw_pull_requests: list[RawPullRequest] = json.loads(
         gh.pr.list(
             json=','.join(fields),
-            _env={
-                **os.environ,
-                'NO_COLOR': '1',
-            },
+            _env=_construct_gh_env(),
         ),
     )
 
@@ -136,7 +147,22 @@ def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
         for pr in pull_requests
     }
 
-    return sorted([
-        pr
-        for pr in pull_requests if directed_to.get(pr.branch) is None
-    ], key=operator.attrgetter('number'), reverse=True)
+    return sorted(
+        [
+            pr
+            for pr in pull_requests
+            if directed_to.get(pr.branch) is None
+        ],
+        key=operator.attrgetter('number'),
+        reverse=True,
+    )
+
+
+def retrieve_default_branch() -> str:
+    """Get default branch of current repository."""
+    return json.loads(
+        gh.repo.view(
+            json='defaultBranchRef',
+            _env=_construct_gh_env(),
+        ),
+    )['defaultBranchRef']['name']

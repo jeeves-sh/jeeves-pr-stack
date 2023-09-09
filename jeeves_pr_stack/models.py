@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TypedDict
+from typing import TypedDict, Generic, TypeVar
+
+from typer import Context
 
 
 class RawReviewRequest(TypedDict):
@@ -62,6 +64,12 @@ class PullRequest:
     reviewers: list[str]
     checks_status: ChecksStatus
 
+    def __repr__(self):
+        """Represent a PR for printing."""
+        return (
+            f'#{self.number} {self.title} | {self.branch} → {self.base_branch}'
+        )
+
 
 @dataclass
 class State:
@@ -69,3 +77,16 @@ class State:
 
     current_branch: str
     stack: list[PullRequest]
+
+
+StateType = TypeVar('StateType')
+
+
+class TypedContext(Context, Generic[StateType]):
+    """Typed context."""
+
+    obj: StateType   # noqa: WPS110
+
+
+class PRStackContext(TypedContext[State]):
+    """Typed context for Jeeves PR Stack app."""
