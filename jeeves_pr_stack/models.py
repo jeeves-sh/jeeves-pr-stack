@@ -67,7 +67,8 @@ class PullRequest:
     def __repr__(self):
         """Represent a PR for printing."""
         return (
-            f'#{self.number} {self.title} | {self.branch} → {self.base_branch}'
+            f'#{self.number} {self.title} | '
+            f'{self.branch} → {self.base_branch}'  # noqa: WPS326
         )
 
 

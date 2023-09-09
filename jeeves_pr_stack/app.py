@@ -147,7 +147,7 @@ def pop(context: PRStackContext):
         raise ValueError('Base branch of the PR ≠ default branch of the repo.')
 
     if remaining_prs:
-        dependant_pr, *_etc = remaining_prs
+        dependant_pr = funcy.first(remaining_prs)
         console.print(f'Changing base of {dependant_pr} to {default_branch}')
         gh.pr.edit('--base', default_branch, dependant_pr.number)
 
