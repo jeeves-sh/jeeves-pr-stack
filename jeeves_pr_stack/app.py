@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 
 import funcy
-import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
@@ -85,7 +84,7 @@ def pop(context: PRStackContext):
 
     if not Confirm.ask('Do you confirm?', default=True):
         console.print('Aborted.', style='red')
-        raise typer.Exit(1)
+        raise Exit(1)
 
     if dependant_pr is not None:
         console.print(f'Changing base of {dependant_pr} to {default_branch}')

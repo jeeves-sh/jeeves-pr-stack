@@ -1,7 +1,5 @@
-from rich.console import RenderableType
-from rich.markdown import Markdown
 from rich.style import Style
-from rich.table import Column, Table
+from rich.table import Table
 from rich.text import Text
 
 from jeeves_pr_stack.models import ChecksStatus, PullRequest
@@ -10,7 +8,7 @@ bullet_point = '◉'
 vertical_line = '│'
 
 
-def format_status(pr: PullRequest) -> RenderableType:
+def format_status(pr: PullRequest) -> Text | str:
     """Format PR status."""
     if pr.checks_status == ChecksStatus.FAILURE:
         return Text(
