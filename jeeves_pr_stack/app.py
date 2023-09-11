@@ -12,7 +12,7 @@ from jeeves_pr_stack.format import (
     pull_request_list_as_table,
     pull_request_stack_as_table,
 )
-from jeeves_pr_stack.models import PRStackContext, State
+from jeeves_pr_stack.models import PRStackContext, State, PullRequest
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -110,11 +110,26 @@ def split():
     raise NotImplementedError()
 
 
+def _ask_for_pull_request_number(pull_requests: list[PullRequest]) -> int:
+    Console().print(pull_request_list_as_table(pull_requests))
+
+    choices = [str(pr.number) for pr in pull_requests]
+
+    return int(
+        Prompt.ask(
+            'Select the PR',
+            choices=choices,
+            show_choices=True,
+            default=funcy.first(choices),
+        ),
+    )
+
+
 @app.command()
-def push(
+def push(   # noqa: WPS210
     context: PRStackContext,
     pull_request_id: Annotated[Optional[int], Argument()] = None,
-):   # noqa: WPS210
+):
     """Direct current branch/PR to an existing PR."""
     console = Console()
     state = context.obj
@@ -125,22 +140,11 @@ def push(
         current_branch=state.current_branch,
     )
 
+    if not pull_requests:
+        raise ValueError('No PRs found which this branch could refer to.')
+
     if pull_request_id is None:
-        if not pull_requests:
-            raise ValueError('No PRs found which this branch could refer to.')
-
-        console.print(pull_request_list_as_table(pull_requests))
-
-        choices = [str(pr.number) for pr in pull_requests]
-
-        pull_request_id = int(
-            Prompt.ask(
-                'Select the PR',
-                choices=choices,
-                show_choices=True,
-                default=funcy.first(choices),
-            ),
-        )
+        pull_request_id = _ask_for_pull_request_number(pull_requests)
 
     pull_request_by_number = {pr.number: pr for pr in pull_requests}
     base_pull_request = pull_request_by_number[pull_request_id]

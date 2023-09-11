@@ -27,7 +27,7 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
     try:
         raw_status_values.remove('')
     except KeyError:
-        pass
+        pass   # noqa: WPS420
     else:
         return ChecksStatus.RUNNING
 
