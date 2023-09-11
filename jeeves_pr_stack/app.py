@@ -1,20 +1,18 @@
+from typing import Annotated, Optional
+
 import funcy
-import typer
 from rich.console import Console
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm, Prompt
 from rich.style import Style
 from sh import gh, git
-from typer import Typer, Exit
+from typer import Argument, Exit, Typer
 
 from jeeves_pr_stack import github
 from jeeves_pr_stack.format import (
     pull_request_list_as_table,
     pull_request_stack_as_table,
 )
-from jeeves_pr_stack.models import (
-    State,
-    PRStackContext,
-)
+from jeeves_pr_stack.models import PRStackContext, State, PullRequest
 
 app = Typer(
     help='Manage stacks of GitHub PRs.',
@@ -37,11 +35,13 @@ def print_current_stack(context: PRStackContext):
     console = Console()
     default_branch = github.retrieve_default_branch()
     if stack:
-        console.print(pull_request_stack_as_table(
-            stack,
-            default_branch=default_branch,
-            current_branch=current_branch,
-        ))
+        console.print(
+            pull_request_stack_as_table(
+                stack,
+                default_branch=default_branch,
+                current_branch=current_branch,
+            ),
+        )
         return
 
     console.print(
@@ -84,7 +84,7 @@ def pop(context: PRStackContext):
 
     if not Confirm.ask('Do you confirm?', default=True):
         console.print('Aborted.', style='red')
-        raise typer.Exit(1)
+        raise Exit(1)
 
     if dependant_pr is not None:
         console.print(f'Changing base of {dependant_pr} to {default_branch}')
@@ -110,18 +110,29 @@ def split():
     raise NotImplementedError()
 
 
+def _ask_for_pull_request_number(pull_requests: list[PullRequest]) -> int:
+    Console().print(pull_request_list_as_table(pull_requests))
+
+    choices = [str(pr.number) for pr in pull_requests]
+
+    return int(
+        Prompt.ask(
+            'Select the PR',
+            choices=choices,
+            show_choices=True,
+            default=funcy.first(choices),
+        ),
+    )
+
+
 @app.command()
-def push(context: PRStackContext):   # noqa: WPS210
+def push(   # noqa: WPS210
+    context: PRStackContext,
+    pull_request_id: Annotated[Optional[int], Argument()] = None,
+):
     """Direct current branch/PR to an existing PR."""
     console = Console()
     state = context.obj
-
-    if state.stack:
-        console.print(
-            '\n🚫 This PR is already part of a stack.\n',
-            style=Style(color='red', bold=True),
-        )
-        raise Exit(1)
 
     console.print(f'Current branch:\n  {state.current_branch}\n')
 
@@ -132,19 +143,10 @@ def push(context: PRStackContext):   # noqa: WPS210
     if not pull_requests:
         raise ValueError('No PRs found which this branch could refer to.')
 
-    console.print(pull_request_list_as_table(pull_requests))
-
-    choices = [str(pr.number) for pr in pull_requests]
-    number = int(
-        Prompt.ask(
-            'Select the PR',
-            choices=choices,
-            show_choices=True,
-            default=funcy.first(choices),
-        ),
-    )
+    if pull_request_id is None:
+        pull_request_id = _ask_for_pull_request_number(pull_requests)
 
     pull_request_by_number = {pr.number: pr for pr in pull_requests}
-    base_pull_request = pull_request_by_number[number]
+    base_pull_request = pull_request_by_number[pull_request_id]
 
     gh.pr.create(base=base_pull_request.branch, assignee='@me', _fg=True)

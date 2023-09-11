@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TypedDict, Generic, TypeVar
+from typing import Generic, TypedDict, TypeVar
 
 from typer import Context
 
