@@ -2,6 +2,7 @@ from typing import Annotated, Optional
 
 import funcy
 from rich.console import Console
+from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
 from sh import gh, git
@@ -150,3 +151,31 @@ def push(   # noqa: WPS210
     base_pull_request = pull_request_by_number[pull_request_id]
 
     gh.pr.create(base=base_pull_request.branch, assignee='@me', _fg=True)
+
+
+@app.command()
+def rebase(context: PRStackContext):
+    """Rebase each PR in the stack upon its base."""
+    with Progress() as progress:
+        merging_task = progress.add_task(
+            "[cyan]Rebasing PRs...",
+            total=len(context.obj.stack),
+        )
+
+        for pull_request in context.obj.stack:
+            progress.update(
+                merging_task,
+                advance=1,
+                description=(
+                    f"[green]Rebasing PR #{pull_request.number} "
+                    f"{pull_request.title}..."
+                ),
+            )
+            gh.pr.merge('--rebase', pull_request.number)
+            progress.update(
+                merging_task,
+                description=(
+                    f"[green]Successfully "
+                    f"rebased PR #{pull_request.number}..."
+                ),
+            )
