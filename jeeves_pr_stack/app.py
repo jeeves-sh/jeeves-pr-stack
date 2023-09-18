@@ -58,13 +58,7 @@ def print_current_stack(context: PRStackContext):
 
 
 @app.command()
-def rebase():
-    """Rebase current stack."""
-    raise NotImplementedError()
-
-
-@app.command()
-def pop(context: PRStackContext):
+def pop(context: PRStackContext):  # noqa: WPS213
     """Merge the bottom-most PR of current stack to the main branch."""
     if not context.obj.stack:
         raise ValueError('Nothing to merge, current stack is empty.')
@@ -158,24 +152,18 @@ def rebase(context: PRStackContext):
     """Rebase each PR in the stack upon its base."""
     with Progress() as progress:
         merging_task = progress.add_task(
-            "[cyan]Rebasing PRs...",
+            '[cyan]Rebasing PRs...',
             total=len(context.obj.stack),
         )
 
-        for pull_request in context.obj.stack:
+        for pr in context.obj.stack:
             progress.update(
                 merging_task,
                 advance=1,
-                description=(
-                    f"[green]Rebasing PR #{pull_request.number} "
-                    f"{pull_request.title}..."
-                ),
+                description=f'[green]Rebasing PR #{pr.number} {pr.title}...',
             )
-            gh.pr.merge('--rebase', pull_request.number)
+            gh.pr.merge('--rebase', pr.number)
             progress.update(
                 merging_task,
-                description=(
-                    f"[green]Successfully "
-                    f"rebased PR #{pull_request.number}..."
-                ),
+                description=f'[green]Successfully rebased PR #{pr.number}...',
             )
