@@ -1,0 +1,17 @@
+adr:
+  context:
+    roadmap:roadmap:
+      title: Code is inconvenient to maintain
+      bug: true
+      is-blocked-by:
+        - title: `from sh import gh` vs `context.obj.gh` are conflicting
+          bug: true
+        - title: `gh` instance has to be passed in each command at `github.py`
+          is-blocked-by:
+            - title: Organize all commands in `github.py` into a class
+              $id: github-py-as-class
+  decision: github-py-as-class
+  consequences:
+    - title: More concise code in app.py
+    - title: Easier caching current stack, branch, …
+    - title: Better testability
