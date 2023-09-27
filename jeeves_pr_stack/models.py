@@ -80,6 +80,7 @@ class State:
     current_branch: str
     stack: list[PullRequest]
     gh: Command
+    current_pull_request: PullRequest | None = None
 
 
 StateType = TypeVar('StateType')
@@ -93,3 +94,11 @@ class TypedContext(Context, Generic[StateType]):
 
 class PRStackContext(TypedContext[State]):
     """Typed context for Jeeves PR Stack app."""
+
+
+@dataclass
+class Commit:
+    """Git commit."""
+
+    oid: str
+    title: str
