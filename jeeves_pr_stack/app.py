@@ -2,13 +2,14 @@ from typing import Annotated, Optional
 
 import funcy
 from rich.console import Console
-from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
+from rich.status import Status
 from rich.style import Style
-from sh import gh, git
+from sh import gh, git, ErrorReturnCode
 from typer import Argument, Exit, Typer
 
 from jeeves_pr_stack import github
+from jeeves_pr_stack.errors import DivergentBranches
 from jeeves_pr_stack.format import (
     pull_request_list_as_table,
     pull_request_stack_as_table,
@@ -58,7 +59,7 @@ def print_current_stack(context: PRStackContext):
 
 
 @app.command()
-def pop(context: PRStackContext):  # noqa: WPS213
+def pop(context: PRStackContext):
     """Merge the bottom-most PR of current stack to the main branch."""
     if not context.obj.stack:
         raise ValueError('Nothing to merge, current stack is empty.')
@@ -147,23 +148,45 @@ def push(   # noqa: WPS210
     gh.pr.create(base=base_pull_request.branch, assignee='@me', _fg=True)
 
 
+def get_current_branch() -> str:
+    """Retrieve current git branch."""
+    return git.describe('--contains', '--all', 'HEAD').strip('\n')
+
+
 @app.command()
 def rebase(context: PRStackContext):
     """Rebase each PR in the stack upon its base."""
-    with Progress() as progress:
-        merging_task = progress.add_task(
-            '[cyan]Rebasing PRs...',
-            total=len(context.obj.stack),
+    console = Console()
+
+    original_branch = get_current_branch()
+    for pull_request in context.obj.stack:
+        console.print(
+            f'[bold]#{pull_request.number}[/bold] {pull_request.title}',
         )
 
-        for pr in context.obj.stack:
-            progress.update(
-                merging_task,
-                advance=1,
-                description=f'[green]Rebasing PR #{pr.number} {pr.title}...',
-            )
-            gh.pr.merge('--rebase', pr.number)
-            progress.update(
-                merging_task,
-                description=f'[green]Successfully rebased PR #{pr.number}...',
-            )
+        console.print('  Going to rebase:')
+        console.print(f'    {pull_request.branch}', style='red')
+        console.print('  On top of:')
+        console.print(f'    {pull_request.base_branch}', style='blue')
+
+        with Status('Checking out…'):
+            git.switch(pull_request.branch)
+
+            try:
+                git.pull()
+            except ErrorReturnCode as err:
+                if 'You have divergent branches' in err.stderr.decode():
+                    raise DivergentBranches(branch=pull_request.branch)
+
+                raise
+
+        with Status('Rebasing…'):
+            git.pull.origin(pull_request.base_branch, '--rebase')
+
+        with Status('Pushing…'):
+            git.push('--force')
+
+        console.print('  ✅ Done!', style='green')
+        console.print()
+
+    git.switch(original_branch)
