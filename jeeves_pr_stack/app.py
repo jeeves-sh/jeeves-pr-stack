@@ -14,6 +14,7 @@ from jeeves_pr_stack.format import (
     pull_request_stack_as_table,
 )
 from jeeves_pr_stack.github import construct_gh_command
+from jeeves_pr_stack.logic import JeevesPullRequestStack
 from jeeves_pr_stack.models import PRStackContext, State, PullRequest
 
 app = Typer(
@@ -180,10 +181,14 @@ def rebase(context: PRStackContext):
 @app.command()
 def split(context: PRStackContext):
     """Split current PR by commit."""
-    gh = context.obj.gh
+    application = JeevesPullRequestStack(
+        gh=context.obj.gh,
+        git=git,
+    )
 
     console = Console()
-    commits = github.list_commits(gh)
+
+    commits = github.list_commits(context.obj.gh)
     enumerated_commits = list(enumerate(commits, start=1))
 
     original_pull_request = context.obj.current_pull_request
@@ -200,20 +205,15 @@ def split(context: PRStackContext):
         show_choices=True,
     )
 
-    splitting_commit = dict(enumerated_commits)[int(splitting_commit_number)]
+    splitting_commit = dict(enumerated_commits)[
+        int(splitting_commit_number)]
 
-    git.checkout(splitting_commit.oid)
-
-    console.print('Current branch:\n')
+    console.print('Current branch:')
     console.print(context.obj.current_branch)
-
     new_branch_name = Prompt.ask(prompt='Enter the new branch name')
 
-    git.switch('-c', new_branch_name)
-    gh.pr.create(
-        '--fill',
-        base=original_pull_request.base_branch,
-        assignee='@me',
+    application.split(
+        splitting_commit=splitting_commit,
+        new_pr_branch_name=new_branch_name,
+        pull_request_to_split=original_pull_request,
     )
-
-    gh.pr.edit(original_pull_request.number, base=new_branch_name)
