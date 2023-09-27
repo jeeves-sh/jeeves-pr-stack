@@ -9,11 +9,11 @@ from sh import gh, git
 from typer import Argument, Exit, Typer
 
 from jeeves_pr_stack import github
+from jeeves_pr_stack.errors import NoPullRequestOnBranch
 from jeeves_pr_stack.format import (
     pull_request_list_as_table,
     pull_request_stack_as_table,
 )
-from jeeves_pr_stack.github import construct_gh_command
 from jeeves_pr_stack.logic import JeevesPullRequestStack
 from jeeves_pr_stack.models import PRStackContext, State, PullRequest
 
@@ -30,6 +30,7 @@ def print_current_stack(context: PRStackContext):
     current_branch = github.retrieve_current_branch()
     stack = github.retrieve_stack(current_branch=current_branch)
 
+    current_pull_request: PullRequest | None
     try:
         [current_pull_request] = [pr for pr in stack if pr.is_current]
     except ValueError:
@@ -38,7 +39,7 @@ def print_current_stack(context: PRStackContext):
     context.obj = State(
         current_branch=current_branch,
         stack=stack,
-        gh=construct_gh_command(),
+        gh=github.construct_gh_command(),
         current_pull_request=current_pull_request,
     )
 
@@ -108,12 +109,6 @@ def comment():
     raise NotImplementedError()
 
 
-@app.command()
-def split():
-    """Split current PR which is deemed to be too large."""
-    raise NotImplementedError()
-
-
 def _ask_for_pull_request_number(pull_requests: list[PullRequest]) -> int:
     Console().print(pull_request_list_as_table(pull_requests))
 
@@ -179,7 +174,7 @@ def rebase(context: PRStackContext):
 
 
 @app.command()
-def split(context: PRStackContext):
+def split(context: PRStackContext):   # noqa: WPS210
     """Split current PR by commit."""
     application = JeevesPullRequestStack(
         gh=context.obj.gh,
@@ -192,6 +187,8 @@ def split(context: PRStackContext):
     enumerated_commits = list(enumerate(commits, start=1))
 
     original_pull_request = context.obj.current_pull_request
+    if original_pull_request is None:
+        raise NoPullRequestOnBranch(branch=context.obj.current_branch)
 
     console.print('Commits:')
     for commit_number, commit in enumerated_commits:
@@ -205,8 +202,7 @@ def split(context: PRStackContext):
         show_choices=True,
     )
 
-    splitting_commit = dict(enumerated_commits)[
-        int(splitting_commit_number)]
+    splitting_commit = dict(enumerated_commits)[int(splitting_commit_number)]
 
     console.print('Current branch:')
     console.print(context.obj.current_branch)

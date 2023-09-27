@@ -3,9 +3,8 @@ import operator
 import os
 
 import funcy
-import sh
 from networkx import DiGraph, edge_dfs
-from sh import gh, git
+from sh import gh, git, Command
 
 from jeeves_pr_stack.models import (
     ChecksStatus, PullRequest, RawPullRequest,
@@ -92,7 +91,7 @@ def _construct_gh_env() -> dict[str, str]:
     }
 
 
-def construct_gh_command() -> sh.Command:
+def construct_gh_command() -> Command:
     """Construct the GitHub CLI command."""
     return gh.bake(
         _long_sep=None,
