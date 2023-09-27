@@ -1,3 +1,5 @@
+import json
+import os
 from typing import Annotated, Optional
 
 import funcy
@@ -14,6 +16,7 @@ from jeeves_pr_stack.format import (
     pull_request_list_as_table,
     pull_request_stack_as_table,
 )
+from jeeves_pr_stack.github import construct_gh_command
 from jeeves_pr_stack.models import PRStackContext, State, PullRequest
 
 app = Typer(
