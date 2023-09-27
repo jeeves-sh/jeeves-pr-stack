@@ -18,10 +18,13 @@ class JeevesPullRequestStack:
         """List commits for current PR."""
         raw_commits = json.loads(self.gh.pr.view(json='commits'))['commits']
 
-        return [Commit(
-            oid=raw_commit['oid'],
-            title=raw_commit['messageHeadline'],
-        ) for raw_commit in raw_commits]
+        return [
+            Commit(
+                oid=raw_commit['oid'],
+                title=raw_commit['messageHeadline'],
+            )
+            for raw_commit in raw_commits
+        ]
 
     def split(
         self,

@@ -12,3 +12,14 @@ class DivergentBranches(DocumentedError):
     """
 
     branch: str
+
+
+@dataclass
+class NoPullRequestOnBranch(DocumentedError):
+    """
+    The branch does not have a Pull Request attached to it.
+
+    Branch: {self.branch}
+    """
+
+    branch: str
