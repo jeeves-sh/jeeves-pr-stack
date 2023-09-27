@@ -10,6 +10,12 @@ vertical_line = '│'
 
 def format_status(pr: PullRequest) -> Text | str:
     """Format PR status."""
+    if pr.is_draft:
+        return Text(
+            '📝 Draft',
+            style=Style(color='bright_black'),
+        )
+
     if pr.checks_status == ChecksStatus.FAILURE:
         return Text(
             '❌ Checks failed',
@@ -21,12 +27,6 @@ def format_status(pr: PullRequest) -> Text | str:
         return Text(
             f'👀 Review required: {formatted_reviewers}',
             style=Style(color='yellow'),
-        )
-
-    if pr.is_draft:
-        return Text(
-            '📝 Draft',
-            style=Style(color='bright_black'),
         )
 
     return Text(
