@@ -3,6 +3,7 @@ import operator
 import os
 
 import funcy
+import sh
 from networkx import DiGraph, edge_dfs
 from sh import gh, git
 
@@ -87,6 +88,17 @@ def _construct_gh_env() -> dict[str, str]:
         **os.environ,
         'NO_COLOR': '1',
     }
+
+
+def construct_gh_command() -> sh.Command:
+    """Construct the GitHub CLI command."""
+    return gh.bake(
+        _long_sep=None,
+        _env={
+            **os.environ,
+            'NO_COLOR': '1',
+        },
+    )
 
 
 def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:

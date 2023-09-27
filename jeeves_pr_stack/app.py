@@ -1,3 +1,5 @@
+import json
+import os
 from typing import Annotated, Optional
 
 import funcy
@@ -32,6 +34,7 @@ def print_current_stack(context: PRStackContext):
     context.obj = State(
         current_branch=current_branch,
         stack=stack,
+        gh=github.construct_gh_command(),
     )
 
     console = Console()
@@ -190,3 +193,10 @@ def rebase(context: PRStackContext):  # noqa: WPS213
         console.print()
 
     git.switch(original_branch)
+
+
+@app.command()
+def split(context: PRStackContext):
+    """Split current PR by commit."""
+    commits = json.loads(context.obj.gh.pr.view(json='commits'))
+    raise ValueError(commits)
