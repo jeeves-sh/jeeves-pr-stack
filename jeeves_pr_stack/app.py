@@ -188,7 +188,7 @@ def split(context: PRStackContext):
 
     console = Console()
 
-    commits = github.list_commits(context.obj.gh)
+    commits = application.list_commits()
     enumerated_commits = list(enumerate(commits, start=1))
 
     original_pull_request = context.obj.current_pull_request
