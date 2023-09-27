@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Generic, TypedDict, TypeVar
 
+from sh import Command
 from typer import Context
 
 
@@ -78,6 +79,7 @@ class State:
 
     current_branch: str
     stack: list[PullRequest]
+    gh: Command
 
 
 StateType = TypeVar('StateType')
