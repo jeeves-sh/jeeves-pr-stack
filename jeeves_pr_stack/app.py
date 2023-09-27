@@ -1,5 +1,3 @@
-import json
-import os
 from typing import Annotated, Optional
 
 import funcy
@@ -31,10 +29,16 @@ def print_current_stack(context: PRStackContext):
     current_branch = github.retrieve_current_branch()
     stack = github.retrieve_stack(current_branch=current_branch)
 
+    try:
+        [current_pull_request] = [pr for pr in stack if pr.is_current]
+    except ValueError:
+        current_pull_request = None
+
     context.obj = State(
         current_branch=current_branch,
         stack=stack,
         gh=github.construct_gh_command(),
+        current_pull_request=current_pull_request,
     )
 
     console = Console()
@@ -198,5 +202,40 @@ def rebase(context: PRStackContext):  # noqa: WPS213
 @app.command()
 def split(context: PRStackContext):
     """Split current PR by commit."""
-    commits = json.loads(context.obj.gh.pr.view(json='commits'))
-    raise ValueError(commits)
+    gh = context.obj.gh
+
+    console = Console()
+    commits = github.list_commits(gh)
+    enumerated_commits = list(enumerate(commits, start=1))
+
+    original_pull_request = context.obj.current_pull_request
+
+    console.print('Commits:')
+    for commit_number, commit in enumerated_commits:
+        console.print(f'#{commit_number} {commit.title}')
+
+    choices = [str(number) for number, _commit in enumerated_commits]
+    splitting_commit_number = Prompt.ask(
+        prompt='Please choose the commit by which to split the PR',
+        default=funcy.first(choices),
+        choices=choices,
+        show_choices=True,
+    )
+
+    splitting_commit = dict(enumerated_commits)[int(splitting_commit_number)]
+
+    git.checkout(splitting_commit.oid)
+
+    console.print('Current branch:\n')
+    console.print(context.obj.current_branch)
+
+    new_branch_name = Prompt.ask(prompt='Enter the new branch name')
+
+    git.switch('-c', new_branch_name)
+    gh.pr.create(
+        '--fill',
+        base=original_pull_request.base_branch,
+        assignee='@me',
+    )
+
+    gh.pr.edit(original_pull_request.number, base=new_branch_name)

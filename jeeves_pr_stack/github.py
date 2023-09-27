@@ -7,7 +7,10 @@ import sh
 from networkx import DiGraph, edge_dfs
 from sh import gh, git
 
-from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
+from jeeves_pr_stack.models import (
+    ChecksStatus, PullRequest, RawPullRequest,
+    Commit,
+)
 
 
 def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
@@ -184,3 +187,13 @@ def retrieve_default_branch() -> str:
             _env=_construct_gh_env(),
         ),
     )['defaultBranchRef']['name']
+
+
+def list_commits(gh: sh.Command) -> list[Commit]:
+    """List commits for current PR."""
+    raw_commits = json.loads(gh.pr.view(json='commits'))['commits']
+
+    return [Commit(
+        oid=raw_commit['oid'],
+        title=raw_commit['messageHeadline'],
+    ) for raw_commit in raw_commits]
