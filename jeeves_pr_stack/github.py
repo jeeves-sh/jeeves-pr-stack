@@ -9,7 +9,6 @@ from sh import gh, git
 
 from jeeves_pr_stack.models import (
     ChecksStatus, PullRequest, RawPullRequest,
-    Commit,
 )
 
 
@@ -187,13 +186,3 @@ def retrieve_default_branch() -> str:
             _env=_construct_gh_env(),
         ),
     )['defaultBranchRef']['name']
-
-
-def list_commits(gh: sh.Command) -> list[Commit]:
-    """List commits for current PR."""
-    raw_commits = json.loads(gh.pr.view(json='commits'))['commits']
-
-    return [Commit(
-        oid=raw_commit['oid'],
-        title=raw_commit['messageHeadline'],
-    ) for raw_commit in raw_commits]
