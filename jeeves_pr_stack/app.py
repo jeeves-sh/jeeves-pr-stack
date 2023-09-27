@@ -59,7 +59,7 @@ def print_current_stack(context: PRStackContext):
 
 
 @app.command()
-def pop(context: PRStackContext):
+def pop(context: PRStackContext):  # noqa: WPS213
     """Merge the bottom-most PR of current stack to the main branch."""
     if not context.obj.stack:
         raise ValueError('Nothing to merge, current stack is empty.')
@@ -154,7 +154,7 @@ def get_current_branch() -> str:
 
 
 @app.command()
-def rebase(context: PRStackContext):
+def rebase(context: PRStackContext):  # noqa: WPS213
     """Rebase each PR in the stack upon its base."""
     console = Console()
 
