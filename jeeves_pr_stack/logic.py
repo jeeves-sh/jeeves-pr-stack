@@ -1,9 +1,12 @@
 import json
 import sys
 from dataclasses import dataclass
+from functools import cached_property
+from typing import Iterable
 
 import sh
 
+from jeeves_pr_stack import github
 from jeeves_pr_stack.models import Commit, PullRequest
 
 
@@ -26,6 +29,11 @@ class JeevesPullRequestStack:
             for raw_commit in raw_commits
         ]
 
+    @cached_property
+    def starting_branch(self):
+        """Branch in which the app was started."""
+        return self.git.branch('--show-current').strip()
+
     def split(
         self,
         pull_request_to_split: PullRequest,
@@ -45,3 +53,17 @@ class JeevesPullRequestStack:
         )
 
         self.gh.pr.edit(pull_request_to_split.number, base=new_pr_branch_name)
+
+    def rebase(self) -> Iterable[PullRequest]:
+        """Rebase all PRs in current stack."""
+        stack = github.retrieve_stack(self.starting_branch)
+
+        for pr in stack:
+            yield pr
+
+            self.git.switch(pr.branch)
+            self.git.pull()
+            self.git.pull.origin(pr.base_branch, '--rebase')
+            self.git.push('--force')
+
+        self.git.switch(self.starting_branch)
