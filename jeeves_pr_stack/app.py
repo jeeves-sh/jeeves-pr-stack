@@ -2,7 +2,6 @@ from typing import Annotated, Optional
 
 import funcy
 from rich.console import Console
-from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
 from sh import gh, git
@@ -154,23 +153,24 @@ def push(   # noqa: WPS210
 @app.command()
 def rebase(context: PRStackContext):
     """Rebase each PR in the stack upon its base."""
-    with Progress() as progress:
-        merging_task = progress.add_task(
-            '[cyan]Rebasing PRs...',
-            total=len(context.obj.stack),
+    application = JeevesPullRequestStack(
+        gh=context.obj.gh,
+        git=git,
+    )
+
+    console = Console()
+    for is_not_first, pr in enumerate(application.rebase()):
+        if is_not_first:
+            console.print('OK', style='green')
+
+        console.print(
+            f'#{pr.number} {pr.title}… ',
+            end='',
         )
 
-        for pr in context.obj.stack:
-            progress.update(
-                merging_task,
-                advance=1,
-                description=f'[green]Rebasing PR #{pr.number} {pr.title}...',
-            )
-            gh.pr.merge('--rebase', pr.number)
-            progress.update(
-                merging_task,
-                description=f'[green]Successfully rebased PR #{pr.number}...',
-            )
+    console.print('OK', style='green')
+    console.print()
+    console.print('✔ Stack 🥞 rebased.', style='green')
 
 
 @app.command()
