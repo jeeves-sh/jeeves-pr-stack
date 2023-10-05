@@ -17,16 +17,21 @@ from jeeves_pr_stack.models import Commit, PullRequest, RawPullRequest
 class JeevesPullRequestStack:
     """Jeeves PR Stack application."""
 
-    gh: sh.Command = field(default_factory=lambda: sh.gh.bake(
-        _long_sep=None,
-        _env={
-            **os.environ,
-            'NO_COLOR': '1',
-        },
-    ))
+    gh: sh.Command = field(
+        default_factory=lambda: sh.gh.bake(
+            _long_sep=None,
+            _env={
+                **os.environ,
+                'NO_COLOR': '1',
+            },
+        ),
+    )
     git: sh.Command = field(default_factory=lambda: sh.git)
 
-    def list_pull_requests(self, author: str | None = None) -> list[PullRequest]:
+    def list_pull_requests(
+        self,
+        author: str | None = None,
+    ) -> list[PullRequest]:
         """
         Retrieve a list of all open PRs in the repo.
 
@@ -51,7 +56,7 @@ class JeevesPullRequestStack:
             gh_pr_list = gh_pr_list.bake(author=author)
 
         raw_pull_requests: list[RawPullRequest] = json.loads(
-            gh_pr_list()
+            gh_pr_list(),
         )
 
         return [
@@ -67,8 +72,10 @@ class JeevesPullRequestStack:
                 is_draft=raw_pull_request['isDraft'],
                 mergeable=raw_pull_request['mergeable'],
                 review_decision=raw_pull_request['reviewDecision'],
-                reviewers=funcy.pluck('login',
-                                      raw_pull_request['reviewRequests']),
+                reviewers=funcy.pluck(
+                    'login',
+                    raw_pull_request['reviewRequests'],
+                ),
                 checks_status=github.construct_checks_status(raw_pull_request),
             )
             for raw_pull_request in raw_pull_requests
@@ -136,6 +143,11 @@ class JeevesPullRequestStack:
         self.git.switch(self.starting_branch)
 
     def list_stack(self) -> list[PullRequest]:
+        """
+        List current stack.
+
+        Order: from top branch to the main branch of the repository.
+        """
         return github.construct_stack_for_branch(
             branch=self.starting_branch,
             pull_requests=self.list_pull_requests(),

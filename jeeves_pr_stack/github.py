@@ -4,11 +4,9 @@ import os
 
 import funcy
 from networkx import DiGraph, edge_dfs
-from sh import gh, git, Command
+from sh import Command, gh, git
 
-from jeeves_pr_stack.models import (
-    ChecksStatus, PullRequest, RawPullRequest,
-)
+from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
 
 
 def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
