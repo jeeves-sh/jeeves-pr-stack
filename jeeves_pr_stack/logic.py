@@ -7,6 +7,7 @@ from typing import Iterable
 import sh
 
 from jeeves_pr_stack import github
+from jeeves_pr_stack.errors import MergeConflicts
 from jeeves_pr_stack.models import Commit, PullRequest
 
 
@@ -63,7 +64,17 @@ class JeevesPullRequestStack:
 
             self.git.switch(pr.branch)
             self.git.pull()
-            self.git.pull.origin(pr.base_branch, '--rebase')
+
+            try:
+                self.git.pull.origin(pr.base_branch, '--rebase')
+            except sh.ErrorReturnCode as err:
+                standard_output = err.stdout.decode()
+
+                if 'Merge conflict in' in standard_output:
+                    raise MergeConflicts()
+
+                raise
+
             self.git.push('--force')
 
         self.git.switch(self.starting_branch)
