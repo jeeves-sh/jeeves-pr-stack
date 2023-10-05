@@ -132,6 +132,11 @@ def push(   # noqa: WPS210
     console = Console()
     state = context.obj
 
+    application = JeevesPullRequestStack(
+        gh=context.obj.gh,
+        git=git,
+    )
+
     console.print(f'Current branch:\n  {state.current_branch}\n')
 
     pull_requests = github.retrieve_pull_requests_to_append(

@@ -23,3 +23,15 @@ class NoPullRequestOnBranch(DocumentedError):
     """
 
     branch: str
+
+
+class MergeConflicts(DocumentedError):
+    """
+    Merge conflicts detected.
+
+    Please resolve conflicts and issue
+
+    `j stack rebase`
+
+    …once again.
+    """
