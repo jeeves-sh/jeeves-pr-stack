@@ -1,3 +1,4 @@
+import operator
 from typing import Annotated, Optional
 
 import funcy
@@ -5,7 +6,7 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
 from sh import gh, git
-from typer import Argument, Exit, Typer
+from typer import Argument, Exit, Typer, Option
 
 from jeeves_pr_stack import github
 from jeeves_pr_stack.errors import NoPullRequestOnBranch
@@ -27,7 +28,9 @@ app = Typer(
 def print_current_stack(context: PRStackContext):
     """Print current PR stack."""
     current_branch = github.retrieve_current_branch()
-    stack = github.retrieve_stack(current_branch=current_branch)
+
+    application = JeevesPullRequestStack()
+    stack = application.list_stack()
 
     current_pull_request: PullRequest | None
     try:
@@ -123,33 +126,50 @@ def _ask_for_pull_request_number(pull_requests: list[PullRequest]) -> int:
     )
 
 
+def filter_appendable(pull_requests: list[PullRequest]) -> list[PullRequest]:
+    """Determine which PRs we can direct a new PR to."""
+    directed_to = {
+        pr.base_branch: pr.branch
+        for pr in pull_requests
+    }
+
+    return sorted(
+        [
+            pr
+            for pr in pull_requests
+            if directed_to.get(pr.branch) is None
+        ],
+        key=operator.attrgetter('number'),
+        reverse=True,
+    )
+
+
 @app.command()
-def push(   # noqa: WPS210
+def push(
     context: PRStackContext,
+    author: Annotated[
+        str,
+        Option(help='Author of the PRs to choose from.'),
+    ] = '@me',
     pull_request_id: Annotated[Optional[int], Argument()] = None,
 ):
     """Direct current branch/PR to an existing PR."""
     console = Console()
-    state = context.obj
 
-    application = JeevesPullRequestStack(  # noqa: F841
-        gh=context.obj.gh,
-        git=git,
+    application = JeevesPullRequestStack()
+
+    pull_requests_to_append = filter_appendable(
+        application.list_pull_requests(author=author)
     )
-
-    console.print(f'Current branch:\n  {state.current_branch}\n')
-
-    pull_requests = github.retrieve_pull_requests_to_append(
-        current_branch=state.current_branch,
-    )
-
-    if not pull_requests:
+    if not pull_requests_to_append:
         raise ValueError('No PRs found which this branch could refer to.')
 
-    if pull_request_id is None:
-        pull_request_id = _ask_for_pull_request_number(pull_requests)
+    console.print(f'Current branch:\n  {application.starting_branch}\n')
 
-    pull_request_by_number = {pr.number: pr for pr in pull_requests}
+    if pull_request_id is None:
+        pull_request_id = _ask_for_pull_request_number(pull_requests_to_append)
+
+    pull_request_by_number = {pr.number: pr for pr in pull_requests_to_append}
     base_pull_request = pull_request_by_number[pull_request_id]
 
     gh.pr.create(base=base_pull_request.branch, assignee='@me', _fg=True)
@@ -158,10 +178,7 @@ def push(   # noqa: WPS210
 @app.command()
 def rebase(context: PRStackContext):
     """Rebase each PR in the stack upon its base."""
-    application = JeevesPullRequestStack(
-        gh=context.obj.gh,
-        git=git,
-    )
+    application = JeevesPullRequestStack()
 
     console = Console()
     for is_not_first, pr in enumerate(application.rebase()):
@@ -181,10 +198,7 @@ def rebase(context: PRStackContext):
 @app.command()
 def split(context: PRStackContext):   # noqa: WPS210
     """Split current PR by commit."""
-    application = JeevesPullRequestStack(
-        gh=context.obj.gh,
-        git=git,
-    )
+    application = JeevesPullRequestStack()
 
     console = Console()
 
