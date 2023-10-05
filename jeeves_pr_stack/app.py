@@ -132,7 +132,7 @@ def push(   # noqa: WPS210
     console = Console()
     state = context.obj
 
-    application = JeevesPullRequestStack(
+    application = JeevesPullRequestStack(  # noqa: F841
         gh=context.obj.gh,
         git=git,
     )
