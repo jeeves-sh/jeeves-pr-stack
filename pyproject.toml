@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jeeves-pr-stack"
-version = "0.1.0"
+version = "0.1.1"
 description = "Manage GitHub Pull Request stacks."
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 license = "MIT"
