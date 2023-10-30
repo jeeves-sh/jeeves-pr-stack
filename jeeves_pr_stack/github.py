@@ -4,11 +4,9 @@ import os
 
 import funcy
 from networkx import DiGraph, edge_dfs
-from sh import gh, git, Command
+from sh import Command, gh, git
 
-from jeeves_pr_stack.models import (
-    ChecksStatus, PullRequest, RawPullRequest,
-)
+from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
 
 
 def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
@@ -99,81 +97,6 @@ def construct_gh_command() -> Command:
             **os.environ,
             'NO_COLOR': '1',
         },
-    )
-
-
-def retrieve_pull_requests(current_branch: str) -> list[PullRequest]:
-    """
-    Retrieve a list of all open PRs in the repo.
-
-    Mark the one bound to current branch with `is_current` field.
-    """
-    fields = [
-        'number',
-        'baseRefName',
-        'headRefName',
-        'id',
-        'isDraft',
-        'mergeable',
-        'title',
-        'url',
-        'reviewDecision',
-        'reviewRequests',
-        'statusCheckRollup',
-    ]
-
-    raw_pull_requests: list[RawPullRequest] = json.loads(
-        gh.pr.list(
-            json=','.join(fields),
-            _env=_construct_gh_env(),
-        ),
-    )
-
-    return [
-        PullRequest(
-            is_current=raw_pull_request['headRefName'] == current_branch,
-            number=raw_pull_request['number'],
-            base_branch=raw_pull_request['baseRefName'],
-            branch=raw_pull_request['headRefName'],
-            title=raw_pull_request['title'],
-            url=raw_pull_request['url'],
-            is_draft=raw_pull_request['isDraft'],
-            mergeable=raw_pull_request['mergeable'],
-            review_decision=raw_pull_request['reviewDecision'],
-            reviewers=funcy.pluck('login', raw_pull_request['reviewRequests']),
-            checks_status=construct_checks_status(raw_pull_request),
-        )
-        for raw_pull_request in raw_pull_requests
-    ]
-
-
-def retrieve_stack(current_branch: str) -> list[PullRequest]:
-    """Retrieve the current PR stack."""
-    pull_requests = retrieve_pull_requests(current_branch=current_branch)
-
-    return construct_stack_for_branch(
-        branch=current_branch,
-        pull_requests=pull_requests,
-    )
-
-
-def retrieve_pull_requests_to_append(current_branch: str) -> list[PullRequest]:
-    """Determine which PRs we can direct a new PR to."""
-    pull_requests = retrieve_pull_requests(current_branch=current_branch)
-
-    directed_to = {
-        pr.base_branch: pr.branch
-        for pr in pull_requests
-    }
-
-    return sorted(
-        [
-            pr
-            for pr in pull_requests
-            if directed_to.get(pr.branch) is None
-        ],
-        key=operator.attrgetter('number'),
-        reverse=True,
     )
 
 
