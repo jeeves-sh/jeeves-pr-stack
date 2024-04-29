@@ -24,6 +24,9 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
     # No idea what to do with this one
     raw_status_values.discard('NEUTRAL')
 
+    # We do not care
+    raw_status_values.discard('SKIPPED')
+
     try:
         raw_status_values.remove('')
     except KeyError:
