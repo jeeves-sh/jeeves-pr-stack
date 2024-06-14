@@ -72,10 +72,10 @@ class JeevesPullRequestStack:
                 is_draft=raw_pull_request['isDraft'],
                 mergeable=raw_pull_request['mergeable'],
                 review_decision=raw_pull_request['reviewDecision'],
-                reviewers=funcy.pluck(
-                    'login',
-                    raw_pull_request['reviewRequests'],
-                ),
+                reviewers=[
+                    review_request.get('login') or review_request['name']
+                    for review_request in raw_pull_request['reviewRequests']
+                ],
                 checks_status=github.construct_checks_status(raw_pull_request),
             )
             for raw_pull_request in raw_pull_requests

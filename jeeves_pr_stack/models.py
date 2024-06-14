@@ -10,6 +10,7 @@ class RawReviewRequest(TypedDict):
     """User that was asked to review a PR."""
 
     login: str
+    name: str
 
 
 class RawStatusCheck(TypedDict):
