@@ -26,6 +26,7 @@ def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
 
     # We do not care
     raw_status_values.discard('SKIPPED')
+    raw_status_values.discard('CANCELLED')
 
     try:
         raw_status_values.remove('')
