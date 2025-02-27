@@ -11,12 +11,11 @@ from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
 
 def construct_checks_status(raw_pull_request: RawPullRequest) -> ChecksStatus:
     """Analyze checks for PR and express their status as one value."""
-    raw_status_values = set(
-        funcy.pluck(
-            'conclusion',
-            raw_pull_request['statusCheckRollup'],
-        ),
-    )
+    raw_status_values = {
+        conclusion
+        for check in raw_pull_request['statusCheckRollup']
+        if (conclusion := check.get('conclusion'))
+    }
 
     # This one is not informative
     raw_status_values.discard('SUCCESS')
