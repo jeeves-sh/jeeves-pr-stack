@@ -116,7 +116,11 @@ class JeevesPullRequestStack:
             _out=sys.stdout,
         )
 
-        self.gh.pr.edit(pull_request_to_split.number, base=new_pr_branch_name)
+        github.update_pr_base(
+            self.gh,
+            pull_request_to_split.number,
+            new_pr_branch_name,
+        )
 
     def rebase(self) -> Iterable[PullRequest]:
         """Rebase all PRs in current stack."""

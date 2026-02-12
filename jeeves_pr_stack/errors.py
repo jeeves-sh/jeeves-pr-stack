@@ -35,3 +35,16 @@ class MergeConflicts(DocumentedError):
 
     …once again.
     """
+
+
+class GhPrEditDeprecationError(DocumentedError):
+    """
+    Failed to update the PR base branch.
+
+    The gh CLI hit a GraphQL deprecation error (Projects classic).
+    This is a known issue: https://github.com/cli/cli/issues/11983
+
+    Please upgrade gh via your package manager
+    (e.g. brew upgrade gh, sudo apt install gh).
+    See https://github.com/cli/cli#installation
+    """
