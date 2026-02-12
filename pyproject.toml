@@ -26,4 +26,3 @@ build-backend = "poetry.core.masonry.api"
 wemake-python-styleguide = [
     "-WPS115",  # TypedDicts describing GH CLI output need CamelCase field names
 ]
-
