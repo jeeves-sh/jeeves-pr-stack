@@ -1,11 +1,10 @@
 import json
-import operator
 import os
 
-import funcy
 from networkx import DiGraph, edge_dfs
-from sh import Command, gh, git
+from sh import Command, ErrorReturnCode, gh, git
 
+from jeeves_pr_stack.errors import GhPrEditDeprecationError
 from jeeves_pr_stack.models import ChecksStatus, PullRequest, RawPullRequest
 
 
@@ -111,3 +110,20 @@ def retrieve_default_branch() -> str:
             _env=_construct_gh_env(),
         ),
     )['defaultBranchRef']['name']
+
+
+def update_pr_base(gh_cmd, pr_number: int, base_branch: str) -> None:
+    """Update a PR's base branch. Raises GhPrEditDeprecationError on deprecation."""  # noqa: E501
+    try:
+        gh_cmd.pr.edit(pr_number, base=base_branch)
+    except ErrorReturnCode as err:
+        stderr_raw = err.stderr
+        if isinstance(stderr_raw, bytes):
+            stderr = stderr_raw.decode()
+        else:
+            stderr = str(stderr_raw)
+        projects_classic = 'Projects (classic)' in stderr
+        project_cards = 'repository.pullRequest.projectCards' in stderr
+        if projects_classic and project_cards:
+            raise GhPrEditDeprecationError() from err
+        raise

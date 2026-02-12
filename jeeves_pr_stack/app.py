@@ -93,7 +93,7 @@ def pop(context: PRStackContext):  # noqa: WPS213
 
     if dependant_pr is not None:
         console.print(f'Changing base of {dependant_pr} to {default_branch}')
-        gh.pr.edit('--base', default_branch, dependant_pr.number)
+        github.update_pr_base(gh, dependant_pr.number, default_branch)
 
     console.print(f'Merging {top_pr}...')
     gh.pr.merge('--merge', top_pr.number)
