@@ -1,0 +1,4 @@
+[flake8]
+per-file-ignores =
+    jeeves_pr_stack/app.py:WPS201,WPS202,WPS359,WPS460
+

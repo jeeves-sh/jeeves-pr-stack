@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Iterable
 
-import funcy
 import sh
 
 from jeeves_pr_stack import github
