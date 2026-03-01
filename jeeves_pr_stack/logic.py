@@ -22,7 +22,7 @@ class JeevesPullRequestStack:
             _tty_out=False,
             _env={
                 **os.environ,
-                'NO_COLOR': '1',
+                "NO_COLOR": "1",
             },
         ),
     )
@@ -38,20 +38,20 @@ class JeevesPullRequestStack:
         Mark the one bound to current branch with `is_current` field.
         """
         fields = [
-            'number',
-            'baseRefName',
-            'headRefName',
-            'id',
-            'isDraft',
-            'mergeable',
-            'title',
-            'url',
-            'reviewDecision',
-            'reviewRequests',
-            'statusCheckRollup',
+            "number",
+            "baseRefName",
+            "headRefName",
+            "id",
+            "isDraft",
+            "mergeable",
+            "title",
+            "url",
+            "reviewDecision",
+            "reviewRequests",
+            "statusCheckRollup",
         ]
 
-        gh_pr_list = self.gh.pr.list.bake(json=','.join(fields))
+        gh_pr_list = self.gh.pr.list.bake(json=",".join(fields))
         if author:
             gh_pr_list = gh_pr_list.bake(author=author)
 
@@ -61,20 +61,18 @@ class JeevesPullRequestStack:
 
         return [
             PullRequest(
-                is_current=(
-                    raw_pull_request['headRefName'] == self.starting_branch
-                ),
-                number=raw_pull_request['number'],
-                base_branch=raw_pull_request['baseRefName'],
-                branch=raw_pull_request['headRefName'],
-                title=raw_pull_request['title'],
-                url=raw_pull_request['url'],
-                is_draft=raw_pull_request['isDraft'],
-                mergeable=raw_pull_request['mergeable'],
-                review_decision=raw_pull_request['reviewDecision'],
+                is_current=(raw_pull_request["headRefName"] == self.starting_branch),
+                number=raw_pull_request["number"],
+                base_branch=raw_pull_request["baseRefName"],
+                branch=raw_pull_request["headRefName"],
+                title=raw_pull_request["title"],
+                url=raw_pull_request["url"],
+                is_draft=raw_pull_request["isDraft"],
+                mergeable=raw_pull_request["mergeable"],
+                review_decision=raw_pull_request["reviewDecision"],
                 reviewers=[
-                    review_request.get('login') or review_request['name']
-                    for review_request in raw_pull_request['reviewRequests']
+                    review_request.get("login") or review_request["name"]
+                    for review_request in raw_pull_request["reviewRequests"]
                 ],
                 checks_status=github.construct_checks_status(raw_pull_request),
             )
@@ -83,12 +81,12 @@ class JeevesPullRequestStack:
 
     def list_commits(self) -> list[Commit]:
         """List commits for current PR."""
-        raw_commits = json.loads(self.gh.pr.view(json='commits'))['commits']
+        raw_commits = json.loads(self.gh.pr.view(json="commits"))["commits"]
 
         return [
             Commit(
-                oid=raw_commit['oid'],
-                title=raw_commit['messageHeadline'],
+                oid=raw_commit["oid"],
+                title=raw_commit["messageHeadline"],
             )
             for raw_commit in raw_commits
         ]
@@ -96,7 +94,7 @@ class JeevesPullRequestStack:
     @cached_property
     def starting_branch(self):
         """Branch in which the app was started."""
-        return self.git.branch('--show-current').strip()
+        return self.git.branch("--show-current").strip()
 
     def split(
         self,
@@ -107,11 +105,11 @@ class JeevesPullRequestStack:
         """Split a pull request into two smaller ones."""
         self.git.checkout(splitting_commit.oid)
 
-        self.git.switch('-c', new_pr_branch_name)
+        self.git.switch("-c", new_pr_branch_name)
         self.gh.pr.create(
-            '--fill',
+            "--fill",
             base=pull_request_to_split.base_branch,
-            assignee='@me',
+            assignee="@me",
             _in=sys.stdin,
             _out=sys.stdout,
         )
@@ -133,16 +131,16 @@ class JeevesPullRequestStack:
             self.git.pull()
 
             try:
-                self.git.pull.origin(pr.base_branch, '--rebase')
+                self.git.pull.origin(pr.base_branch, "--rebase")
             except sh.ErrorReturnCode as err:
                 standard_output = err.stdout.decode()
 
-                if 'Merge conflict in' in standard_output:
+                if "Merge conflict in" in standard_output:
                     raise MergeConflicts()
 
                 raise
 
-            self.git.push('--force')
+            self.git.push("--force")
 
         self.git.switch(self.starting_branch)
 
