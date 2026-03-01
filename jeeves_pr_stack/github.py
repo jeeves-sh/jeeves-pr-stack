@@ -95,6 +95,7 @@ def construct_gh_command() -> Command:
     """Construct the GitHub CLI command."""
     return gh.bake(
         _long_sep=None,
+        _tty_out=False,
         _env={
             **os.environ,
             'NO_COLOR': '1',
@@ -108,6 +109,7 @@ def retrieve_default_branch() -> str:
         gh.repo.view(
             json='defaultBranchRef',
             _env=_construct_gh_env(),
+            _tty_out=False,
         ),
     )['defaultBranchRef']['name']
 
