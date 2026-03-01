@@ -19,6 +19,7 @@ class JeevesPullRequestStack:
     gh: sh.Command = field(
         default_factory=lambda: sh.gh.bake(
             _long_sep=None,
+            _tty_out=False,
             _env={
                 **os.environ,
                 'NO_COLOR': '1',
