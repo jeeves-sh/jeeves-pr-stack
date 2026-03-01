@@ -5,7 +5,7 @@ import funcy
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
-from sh import gh, git
+from sh import git
 from typer import Argument, Exit, Option, Typer
 
 from jeeves_pr_stack import github
@@ -93,10 +93,10 @@ def pop(context: PRStackContext):  # noqa: WPS213
 
     if dependant_pr is not None:
         console.print(f'Changing base of {dependant_pr} to {default_branch}')
-        github.update_pr_base(gh, dependant_pr.number, default_branch)
+        github.update_pr_base(context.obj.gh, dependant_pr.number, default_branch)
 
     console.print(f'Merging {top_pr}...')
-    gh.pr.merge('--merge', top_pr.number)
+    context.obj.gh.pr.merge('--merge', top_pr.number)
 
     console.print(f'Deleting branch: {top_pr.branch}')
     git.push.origin('--delete', top_pr.branch)
